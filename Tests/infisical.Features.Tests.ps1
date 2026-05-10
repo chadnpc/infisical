@@ -5,7 +5,7 @@ using module ..\infisical.psm1
 # Load environment variables from the root .env file
 Read-Env "$PSScriptRoot\..\.env" | Set-Env
 
-Describe "Infisical DeadlockTest" {
+Describe "Infisical Deadlock tests " {
   It "Does not deadlock when using synchronous blocking (.GetAwaiter().GetResult())" {
     $settings = [InfisicalSdkSettingsBuilder]::new().WithHostUri("https://app.infisical.com").Build()
     $client = [InfisicalClient]::new($settings)
@@ -23,7 +23,7 @@ Describe "Infisical DeadlockTest" {
   }
 }
 
-Describe "Infisical PSMODULE Feature tests" {
+Describe "Infisical Access Control tests " {
   $clientId = $env:INFISICAL_MACHINE_IDENTITY_CLIENT_ID
   $clientSecret = $env:INFISICAL_MACHINE_IDENTITY_CLIENT_SECRET
   $projectId = $env:INFISICAL_PROJECT_ID
@@ -31,7 +31,7 @@ Describe "Infisical PSMODULE Feature tests" {
 
   $settings = [InfisicalSdkSettingsBuilder]::new().WithHostUri($hostUri).Build()
   $client = [InfisicalClient]::new($settings)
-  $newSecretName = "INFISICAL-PSMODULE-TEST-$([guid]::NewGuid())"
+  $newSecretName = "INFISICAL-ACCESS-TEST-$([guid]::NewGuid())"
 
   It "Authenticates with Universal Auth" {
     $credential = $client.Auth().UniversalAuth().LoginAsync($clientId, ($clientSecret | xconvert ToSecurestring)).GetAwaiter().GetResult()
@@ -86,7 +86,7 @@ Describe "Infisical PSMODULE Feature tests" {
       $ldapClient = [InfisicalClient]::new($settings)
       $credential = $ldapClient.Auth().LdapAuth().LoginAsync($ldapIdentityId, $ldapUsername, ($ldapPassword | xconvert ToSecurestring)).GetAwaiter().GetResult()
       $credential.AccessToken | Should Not BeNullOrEmpty
-      
+
       # Use the LDAP-authenticated client for remaining operations (Update, Delete) matching C# Sdk.Test
       $script:client = $ldapClient
     }
