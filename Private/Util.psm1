@@ -1,8 +1,8 @@
 #!/usr/bin/env pwsh
 using namespace System
+using namespace System.Reflection
 using namespace System.Collections
 using namespace System.Collections.Generic
-using namespace System.Reflection
 using namespace System.Text.Json.Serialization
 
 using module ./Model.psm1
@@ -13,7 +13,7 @@ class ObjectToDictionaryConverter {
     if ($null -eq $Obj) { return $result }
 
     $type = $Obj.GetType()
-    $properties = $type.GetProperties([System.Reflection.BindingFlags]::Public -bor [System.Reflection.BindingFlags]::Instance)
+    $properties = $type.GetProperties([BindingFlags]::Public -bor [BindingFlags]::Instance)
 
     foreach ($property in $properties) {
       $value = $property.GetValue($Obj)
@@ -29,7 +29,7 @@ class ObjectToDictionaryConverter {
   }
 
   static [string] GetPropertyKeyName([PropertyInfo]$Property) {
-    $jsonPropertyNameAttr = [System.Reflection.CustomAttributeExtensions]::GetCustomAttribute($Property, [JsonPropertyNameAttribute])
+    $jsonPropertyNameAttr = [CustomAttributeExtensions]::GetCustomAttribute($Property, [JsonPropertyNameAttribute])
     if ($null -ne $jsonPropertyNameAttr) {
       return $jsonPropertyNameAttr.Name
     }
@@ -42,7 +42,7 @@ class ObjectToDictionaryConverter {
     if ($Value -is [bool]) { return $Value.ToString().ToLowerInvariant() }
 
     if ($Value -is [IEnumerable]) {
-      $items = [System.Collections.Generic.List[string]]::new()
+      $items = [List[string]]::new()
       foreach ($item in $Value) {
         if ($null -ne $item) { $items.Add($item.ToString()) }
       }
@@ -53,7 +53,7 @@ class ObjectToDictionaryConverter {
 }
 
 class SecretsUtil {
-  static [void] EnsureUniqueSecretsByKey([Collections.Generic.IList[InfisicalSecret]]$Secrets) {
+  static [void] EnsureUniqueSecretsByKey([IList[InfisicalSecret]]$Secrets) {
     $secretMap = [Dictionary[string, InfisicalSecret]]::new()
     foreach ($secret in $Secrets) {
       $secretMap[$secret.SecretKey] = $secret
