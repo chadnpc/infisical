@@ -1,4 +1,4 @@
-﻿<h2>
+<h2>
 <img align="right" width="120" height="120" alt="Icon" src=".github/logo.png" />
 </h2>
 <div align="Left">
@@ -30,9 +30,9 @@ Install-Module infisical -Scope CurrentUser
 
 **🚀 Features**
 
-- abc
-- def
-- ghi
+- **Advanced Authentication Support**
+- **Secrets Management** CRUD workflows (Create, Read, Update, Delete)
+- **Public Key Infrastructure (PKI)**
 
 ## quick usage (*wip)
 
