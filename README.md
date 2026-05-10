@@ -56,13 +56,10 @@ Load environment variables first:
 #Requires -Modules clihelper.env
 cp .env.example .env
 # Edit .env with your credentials. You can get them from your [Twilio Console](https://console.twilio.com/).
-Read-Env .env | clihelper.env
+Read-Env .env | Set-Env
 
-# Import local module
-Import-Module ./infisical.psm1 -Force
-
-# run tests
-./Test-Module.ps1 -SkipBuildOutput
+# Import local module and run tests
+Import-Module ./infisical.psm1 -Force; ./Test-Module.ps1 -SkipBuildOutput
 ```
 
 ## Try it in your terminal
