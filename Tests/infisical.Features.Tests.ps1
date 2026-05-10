@@ -2,6 +2,9 @@ using namespace System.Text
 using namespace System.Security.Cryptography
 using module ..\infisical.psm1
 
+# Load environment variables from the root .env file
+Read-Env "$PSScriptRoot\..\.env" | Set-Env
+
 Describe "Infisical DeadlockTest" {
   It "Does not deadlock when using synchronous blocking (.GetAwaiter().GetResult())" {
     $settings = [InfisicalSdkSettingsBuilder]::new().WithHostUri("https://app.infisical.com").Build()
@@ -12,7 +15,7 @@ Describe "Infisical DeadlockTest" {
     # Here we expect it to fail gracefully with an auth error, NOT freeze.
     $errorCaught = $false
     try {
-      $client.Auth().UniversalAuth().LoginAsync("fake-id", "fake-secret").GetAwaiter().GetResult() | Out-Null
+      $client.Auth().UniversalAuth().LoginAsync("fake-id", ("fake-secret" | xconvert ToSecurestring)).GetAwaiter().GetResult() | Out-Null
     } catch {
       $errorCaught = $true
     }
@@ -24,18 +27,7 @@ Describe "Infisical PSMODULE Feature tests" {
   $clientId = $env:INFISICAL_MACHINE_IDENTITY_CLIENT_ID
   $clientSecret = $env:INFISICAL_MACHINE_IDENTITY_CLIENT_SECRET
   $projectId = $env:INFISICAL_PROJECT_ID
-  $hostUri = "http://localhost:8080"
-
-  $runTests = (![string]::IsNullOrEmpty($clientId)) -and (![string]::IsNullOrEmpty($clientSecret)) -and (![string]::IsNullOrEmpty($projectId))
-
-  if (!$runTests) {
-    Write-Warning "Skipping Feature tests due to missing INFISICAL environment variables."
-    # Fake test just to not skip completely if we're not running them via Context
-    It "Skipped Integration Tests" {
-      $true | Should Be $true
-    }
-    return
-  }
+  $hostUri = if ([string]::IsNullOrEmpty($env:INFISICAL_HOST_URI)) { "https://app.infisical.com" } else { $env:INFISICAL_HOST_URI }
 
   $settings = [InfisicalSdkSettingsBuilder]::new().WithHostUri($hostUri).Build()
   $client = [InfisicalClient]::new($settings)
@@ -44,6 +36,9 @@ Describe "Infisical PSMODULE Feature tests" {
   It "Authenticates with Universal Auth" {
     $credential = $client.Auth().UniversalAuth().LoginAsync($clientId, ($clientSecret | xconvert ToSecurestring)).GetAwaiter().GetResult()
     $credential.AccessToken | Should Not BeNullOrEmpty
+    Write-Host "Sleeping for 5 seconds"
+    Start-Sleep -Seconds 5
+    Write-Host "Done sleeping"
   }
 
   It "Creates a new secret" {
@@ -82,6 +77,21 @@ Describe "Infisical PSMODULE Feature tests" {
     $secret.SecretKey | Should Be $newSecretName
   }
 
+  $ldapIdentityId = $env:LDAP_IDENTITY_ID
+  $ldapUsername = $env:LDAP_USERNAME
+  $ldapPassword = $env:LDAP_PASSWORD
+
+  if (!([string]::IsNullOrEmpty($ldapIdentityId) -or [string]::IsNullOrEmpty($ldapUsername) -or [string]::IsNullOrEmpty($ldapPassword))) {
+    It "Authenticates with LDAP and shifts operational context to LDAP Client" {
+      $ldapClient = [InfisicalClient]::new($settings)
+      $credential = $ldapClient.Auth().LdapAuth().LoginAsync($ldapIdentityId, $ldapUsername, ($ldapPassword | xconvert ToSecurestring)).GetAwaiter().GetResult()
+      $credential.AccessToken | Should Not BeNullOrEmpty
+      
+      # Use the LDAP-authenticated client for remaining operations (Update, Delete) matching C# Sdk.Test
+      $script:client = $ldapClient
+    }
+  }
+
   It "Updates a secret" {
     $updateSecretOptions = [UpdateSecretOptions]::new()
     $updateSecretOptions.SecretName = $newSecretName
@@ -97,20 +107,6 @@ Describe "Infisical PSMODULE Feature tests" {
 
     # Update variable tracking for next test
     $script:newSecretName = "$($newSecretName)-updated"
-  }
-
-  $ldapIdentityId = $env:LDAP_IDENTITY_ID
-  $ldapUsername = $env:LDAP_USERNAME
-  $ldapPassword = $env:LDAP_PASSWORD
-
-  if (!([string]::IsNullOrEmpty($ldapIdentityId) -or [string]::IsNullOrEmpty($ldapUsername) -or [string]::IsNullOrEmpty($ldapPassword))) {
-    It "Authenticates with LDAP (if env setup)" {
-      $ldapClient = [InfisicalClient]::new($settings)
-      $credential = $ldapClient.Auth().LdapAuth().LoginAsync($ldapIdentityId, $ldapUsername, ($ldapPassword | xconvert ToSecurestring)).GetAwaiter().GetResult()
-      $credential.AccessToken | Should Not BeNullOrEmpty
-      # Reassign for deletion
-      $script:client = $ldapClient
-    }
   }
 
   It "Deletes a secret" {
