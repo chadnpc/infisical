@@ -1,5 +1,6 @@
 #!/usr/bin/env pwsh
 using namespace System
+using namespace System.Threading.Tasks
 using namespace System.Collections.Generic
 
 using module ./Api.psm1
@@ -18,13 +19,13 @@ class UniversalAuth {
     $this._setAccessTokenFunc = $setAccessTokenFunc
   }
 
-  [System.Threading.Tasks.Task[MachineIdentityCredential]] LoginAsync([string]$clientId, [securestring]$clientSecret) {
+  [Task[MachineIdentityCredential]] LoginAsync([string]$clientId, [securestring]$clientSecret) {
     try {
       $loginRequest = [UniversalAuthLoginRequest]::new($clientId, $clientSecret)
       $responseObject = $this._apiClient.PostAsync([MachineIdentityCredential], "/api/v1/auth/universal-auth/login", $loginRequest).GetAwaiter().GetResult()
       $response = [MachineIdentityCredential]$responseObject
       $this._apiClient.SetAccessToken($response.AccessToken)
-      return [System.Threading.Tasks.Task]::FromResult($response)
+      return [Task]::FromResult($response)
     } catch {
       throw [InfisicalException]::new("Failed to login", $_.Exception)
     }
@@ -40,13 +41,13 @@ class LdapAuth {
     $this._setAccessTokenFunc = $setAccessTokenFunc
   }
 
-  [System.Threading.Tasks.Task[MachineIdentityCredential]] LoginAsync([string]$identityId, [string]$username, [securestring]$password) {
+  [Task[MachineIdentityCredential]] LoginAsync([string]$identityId, [string]$username, [securestring]$password) {
     try {
       $loginRequest = [LdapAuthLoginRequest]::new($identityId, $username, $password)
       $responseObject = $this._apiClient.PostAsync([MachineIdentityCredential], "/api/v1/auth/ldap-auth/login", $loginRequest).GetAwaiter().GetResult()
       $response = [MachineIdentityCredential]$responseObject
       $this._apiClient.SetAccessToken($response.AccessToken)
-      return [System.Threading.Tasks.Task]::FromResult($response)
+      return [Task]::FromResult($response)
     } catch {
       throw [InfisicalException]::new("Failed to login", $_.Exception)
     }
@@ -82,24 +83,24 @@ class Subscribers {
     $this._apiClient = $apiClient
   }
 
-  [System.Threading.Tasks.Task[CertificateBundle]] RetrieveLatestCertificateBundleAsync([RetrieveLatestCertificateBundleOptions]$options) {
+  [Task[CertificateBundle]] RetrieveLatestCertificateBundleAsync([RetrieveLatestCertificateBundleOptions]$options) {
     try {
       $options.Validate()
       $dict = [ObjectToDictionaryConverter]::ToDictionary($options, $false)
       $responseObject = $this._apiClient.GetAsync([CertificateBundle], "/api/v1/pki/subscribers/$($options.SubscriberName)/latest-certificate-bundle", $dict).GetAwaiter().GetResult()
       $response = [CertificateBundle]$responseObject
-      return [System.Threading.Tasks.Task]::FromResult($response)
+      return [Task]::FromResult($response)
     } catch {
       throw [InfisicalException]::new("Failed to retrieve latest certificate bundle", $_.Exception)
     }
   }
 
-  [System.Threading.Tasks.Task[SubscriberIssuedCertificate]] IssueCertificateAsync([IssueCertificateOptions]$options) {
+  [Task[SubscriberIssuedCertificate]] IssueCertificateAsync([IssueCertificateOptions]$options) {
     try {
       $options.Validate()
       $responseObject = $this._apiClient.PostAsync([SubscriberIssuedCertificate], "/api/v1/pki/subscribers/$($options.SubscriberName)/issue-certificate", $options, $true).GetAwaiter().GetResult()
       $response = [SubscriberIssuedCertificate]$responseObject
-      return [System.Threading.Tasks.Task]::FromResult($response)
+      return [Task]::FromResult($response)
     } catch {
       throw [InfisicalException]::new("Failed to issue certificate", $_.Exception)
     }
@@ -127,7 +128,7 @@ class SecretsClient {
     $this._apiClient = $apiClient
   }
 
-  [System.Threading.Tasks.Task[InfisicalSecret[]]] ListAsync([ListSecretsOptions]$options) {
+  [Task[InfisicalSecret[]]] ListAsync([ListSecretsOptions]$options) {
     try {
       $options.Validate()
 
@@ -181,13 +182,13 @@ class SecretsClient {
         }
       }
 
-      return [System.Threading.Tasks.Task]::FromResult($secretsList.ToArray())
+      return [Task]::FromResult($secretsList.ToArray())
     } catch {
       throw [InfisicalException]::new("Failed to list secrets", $_.Exception)
     }
   }
 
-  [System.Threading.Tasks.Task[InfisicalSecret]] GetAsync([GetSecretOptions]$options) {
+  [Task[InfisicalSecret]] GetAsync([GetSecretOptions]$options) {
     try {
       $options.Validate()
       $dict = [ObjectToDictionaryConverter]::ToDictionary($options, $false)
@@ -199,40 +200,40 @@ class SecretsClient {
         $response.Secret.SecretPath = $options.SecretPath
       }
 
-      return [System.Threading.Tasks.Task]::FromResult($response.Secret)
+      return [Task]::FromResult($response.Secret)
     } catch {
       throw [InfisicalException]::new("Failed to get secret", $_.Exception)
     }
   }
 
-  [System.Threading.Tasks.Task[InfisicalSecret]] CreateAsync([CreateSecretOptions]$options) {
+  [Task[InfisicalSecret]] CreateAsync([CreateSecretOptions]$options) {
     try {
       $options.Validate()
       $responseObject = $this._apiClient.PostAsync([CreateSecretResponse], "/api/v3/secrets/raw/$($options.SecretName)", $options, $true).GetAwaiter().GetResult()
       $response = [CreateSecretResponse]$responseObject
-      return [System.Threading.Tasks.Task]::FromResult($response.Secret)
+      return [Task]::FromResult($response.Secret)
     } catch {
       throw [InfisicalException]::new("Failed to create secret", $_.Exception)
     }
   }
 
-  [System.Threading.Tasks.Task[InfisicalSecret]] UpdateAsync([UpdateSecretOptions]$options) {
+  [Task[InfisicalSecret]] UpdateAsync([UpdateSecretOptions]$options) {
     try {
       $options.Validate()
       $responseObject = $this._apiClient.PatchAsync([UpdateSecretResponse], "/api/v3/secrets/raw/$($options.SecretName)", $options, $true).GetAwaiter().GetResult()
       $response = [UpdateSecretResponse]$responseObject
-      return [System.Threading.Tasks.Task]::FromResult($response.Secret)
+      return [Task]::FromResult($response.Secret)
     } catch {
       throw [InfisicalException]::new("Failed to update secret", $_.Exception)
     }
   }
 
-  [System.Threading.Tasks.Task[InfisicalSecret]] DeleteAsync([DeleteSecretOptions]$options) {
+  [Task[InfisicalSecret]] DeleteAsync([DeleteSecretOptions]$options) {
     try {
       $options.Validate()
       $responseObject = $this._apiClient.DeleteAsync([DeleteSecretResponse], "/api/v3/secrets/raw/$($options.SecretName)", $options, $true).GetAwaiter().GetResult()
       $response = [DeleteSecretResponse]$responseObject
-      return [System.Threading.Tasks.Task]::FromResult($response.Secret)
+      return [Task]::FromResult($response.Secret)
     } catch {
       throw [InfisicalException]::new("Failed to delete secret", $_.Exception)
     }
