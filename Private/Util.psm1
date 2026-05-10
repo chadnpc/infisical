@@ -29,7 +29,7 @@ class ObjectToDictionaryConverter {
   }
 
   static [string] GetPropertyKeyName([PropertyInfo]$Property) {
-    $jsonPropertyNameAttr = $Property.GetCustomAttribute([JsonPropertyNameAttribute])
+    $jsonPropertyNameAttr = [System.Reflection.CustomAttributeExtensions]::GetCustomAttribute($Property, [JsonPropertyNameAttribute])
     if ($null -ne $jsonPropertyNameAttr) {
       return $jsonPropertyNameAttr.Name
     }
