@@ -1,9 +1,9 @@
 #!/usr/bin/env pwsh
+using namespace System
+using namespace System.Text.Json.Serialization
 
 using module ./Enums.psm1
 using module ./Exceptions.psm1
-using namespace System
-using namespace System.Text.Json.Serialization
 
 #Requires -Modules clihelper.xconvert
 
@@ -319,8 +319,8 @@ class DeleteSecretResponse {
 #endregion
 
 class InfisicalUniversalAuth {
-  hidden [string] $_clientId
-  hidden [string] $_clientSecret
+  hidden [ValidateNotNullOrWhiteSpace()][string] $_clientId
+  hidden [ValidateNotNullOrWhiteSpace()][string] $_clientSecret
 
   InfisicalUniversalAuth([string]$clientId, [securestring]$clientSecret) {
     $this._clientId = $clientId
@@ -330,7 +330,7 @@ class InfisicalUniversalAuth {
 }
 
 class InfisicalTokenAuth {
-  hidden [string] $_token
+  hidden [ValidateNotNullOrWhiteSpace()][string] $_token
 
   InfisicalTokenAuth([string]$token) {
     $this._token = $token
@@ -381,7 +381,7 @@ class InfisicalAuth {
 }
 
 class InfisicalSdkSettings {
-  [string] $HostUri = "https://app.infisical.com"
+  [ValidateNotNullOrWhiteSpace()][string] $HostUri = "https://app.infisical.com"
 }
 
 class InfisicalSdkSettingsBuilder {
