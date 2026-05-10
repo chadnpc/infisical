@@ -85,7 +85,6 @@ process {
 
   # Load environment variables from .env file
   $v = $VerbosePreference; $VerbosePreference = "Continue"; Read-Env ([IO.Path]::Combine($PSScriptRoot, ".env")) | Set-Env; $VerbosePreference = $v;
-
   Write-Host "[1/2] Testing ModuleManifest ..." -ForegroundColor Green
   if (!$SkipBuildOutput) {
     Test-ModuleManifest -Path $manifestFile.FullName -ErrorAction Stop -Verbose:$false
