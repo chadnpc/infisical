@@ -79,7 +79,7 @@ $TypeAcceleratorsClass = [PsObject].Assembly.GetType('System.Management.Automati
 # Add type accelerators for every exportable type.
 foreach ($Type in $typestoExport) {
   try {
-    $TypeAcceleratorsClass::Add($Type.FullName, $Type)
+    [void]$TypeAcceleratorsClass::Add($Type.FullName, $Type)
   } catch {
     # Ignore if already exists
     $null
