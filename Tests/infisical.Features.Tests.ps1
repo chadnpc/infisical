@@ -20,7 +20,7 @@ Describe "Infisical DeadlockTest" {
   }
 }
 
-Describe "Infisical.Sdk.Test (Features)" {
+Describe "Infisical PSMODULE Feature tests" {
   $clientId = $env:INFISICAL_MACHINE_IDENTITY_CLIENT_ID
   $clientSecret = $env:INFISICAL_MACHINE_IDENTITY_CLIENT_SECRET
   $projectId = $env:INFISICAL_PROJECT_ID
