@@ -381,7 +381,15 @@ class InfisicalAuth {
 }
 
 class InfisicalSdkSettings {
-  [ValidateNotNullOrWhiteSpace()][string] $HostUri = "https://app.infisical.com"
+  [ValidateNotNullOrWhiteSpace()][string] $HostUri
+  [ValidateNotNullOrEmpty()][securestring] $clientSecret
+
+  InfisicalSdkSettings() {
+    if (![string]::IsNullOrWhiteSpace($env:INFISICAL_MACHINE_IDENTITY_CLIENT_SECRET)) {
+      $this.clientSecret = $env:INFISICAL_MACHINE_IDENTITY_CLIENT_SECRET | xconvert ToSecurestring
+    }
+    $this.HostUri = ![string]::IsNullOrWhiteSpace($env:INFISICAL_HOST_URI) ? $env:INFISICAL_HOST_URI : "https://app.infisical.com"
+  }
 }
 
 class InfisicalSdkSettingsBuilder {
