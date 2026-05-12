@@ -29,6 +29,7 @@ class InfisicalClient {
   hidden [SecretsClient] $_secretsClient
   hidden [PkiClient] $_pkiClient
   hidden [IdentitiesClient] $_identitiesClient
+  hidden [KmsClient] $_kmsClient
 
   InfisicalClient([InfisicalSdkSettings]$settings) {
     $this._apiClient = [ApiClient]::new($settings.HostUri)
@@ -36,6 +37,7 @@ class InfisicalClient {
     $this._authClient = [AuthClient]::new($this._apiClient, { param($accessToken) $this._apiClient.SetAccessToken($accessToken) })
     $this._pkiClient = [PkiClient]::new($this._apiClient)
     $this._identitiesClient = [IdentitiesClient]::new($this._apiClient)
+    $this._kmsClient = [KmsClient]::new($this._apiClient)
   }
 
   [AuthClient] Auth() {
@@ -52,6 +54,10 @@ class InfisicalClient {
 
   [IdentitiesClient] Identities() {
     return $this._identitiesClient
+  }
+
+  [KmsClient] Kms() {
+    return $this._kmsClient
   }
 }
 
@@ -81,7 +87,8 @@ $typestoExport = @(
   [ApiClient], [QueryBuilder], [UniversalAuth], [LdapAuth], [AuthClient], [Subscribers], [PkiClient], [SecretsClient], [IdentitiesClient], [SecretType], [InfisicalAuthMethod], [InfisicalException], [IdentityProjectAdditionalPrivilegePermissionConditionEnvironment], [IdentityProjectAdditionalPrivilegePermissionCondition],
   [IdentityProjectAdditionalPrivilegePermission], [IdentityProjectAdditionalPrivilegeType], [AddIdentityProjectAdditionalPrivilegeOptions], [IdentityProjectAdditionalPrivilegeResponse], [MachineIdentityCredential], [UniversalAuthLoginRequest], [LdapAuthLoginRequest], [ListSecretsOptions], [GetSecretOptions], [SecretMetadata],
   [CreateSecretOptions], [UpdateSecretOptions], [DeleteSecretOptions], [IssueCertificateOptions], [SubscriberIssuedCertificate], [RetrieveLatestCertificateBundleOptions], [CertificateBundle], [InfisicalSecret], [SecretImport], [ListSecretsResponse], [GetSecretResponse], [CreateSecretResponse], [UpdateSecretResponse],
-  [DeleteSecretResponse], [InfisicalUniversalAuth], [InfisicalTokenAuth], [InfisicalAuth], [InfisicalSdkSettings], [InfisicalSdkSettingsBuilder], [ObjectToDictionaryConverter], [SecretsUtil], [InfisicalClient], [Infisical]
+  [DeleteSecretResponse], [InfisicalUniversalAuth], [InfisicalTokenAuth], [InfisicalAuth], [InfisicalSdkSettings], [InfisicalSdkSettingsBuilder], [ObjectToDictionaryConverter], [SecretsUtil], [InfisicalClient], [Infisical],
+  [KmsClient], [KmsKey], [ListKmsKeysOptions], [GetKmsKeyByIdOptions], [GetKmsKeyByNameOptions], [CreateKmsKeyOptions], [UpdateKmsKeyOptions], [DeleteKmsKeyOptions], [RetrieveKmsPublicKeyOptions], [ExportKmsPrivateKeyOptions], [BulkExportPrivateKeysOptions], [EncryptKmsDataOptions], [DecryptKmsDataOptions], [SignKmsDataOptions], [VerifyKmsSignatureOptions], [ListKmsSigningAlgorithmsOptions], [KmsKeyResponse], [KmsKeysResponse], [KmsEncryptResponse], [KmsDecryptResponse], [KmsSignResponse], [KmsVerifyResponse], [KmsPublicKeyResponse], [KmsPrivateKeyResponse], [KmsBulkExportPrivateKeysResponse], [KmsSigningAlgorithmsResponse]
 )
 $TypeAcceleratorsClass = [PsObject].Assembly.GetType('System.Management.Automation.TypeAccelerators')
 # Add type accelerators for every exportable type.
