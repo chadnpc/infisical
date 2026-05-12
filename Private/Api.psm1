@@ -13,19 +13,38 @@ using module ./Enums.psm1
 
 class ApiClient : IDisposable {
   hidden [HttpClient] $_httpClient
-  hidden [ValidateNotNullOrWhiteSpace()][string] $_accessToken
+  hidden [AllowNull()][string] $_accessToken
   hidden [ValidateNotNullOrWhiteSpace()][string] $_baseUrl
+  hidden [ValidateNotNullOrEmpty()][securestring]$_clientSecret
 
-  ApiClient([string]$baseUrl, [string]$accessToken = $null) {
+  ApiClient([string]$baseUrl) {
+    $this.Initialize($baseUrl, $null, $null)
+  }
+  ApiClient([string]$baseUrl, [string]$accessToken) {
+    $this.Initialize($baseUrl, $null, $accessToken)
+  }
+
+  hidden [void] Initialize([string]$baseUrl, [securestring]$clientSecret, [string]$accessToken) {
     $this._httpClient = [HttpClient]::new()
-    $this._baseUrl = $baseUrl
-    $this._accessToken = $accessToken
-
+    $this._baseUrl = $baseUrl;
+    $this.SetAccessToken($accessToken)
+    if ($null -eq $clientSecret) {
+      $client_secret_env = $env:INFISICAL_MACHINE_IDENTITY_CLIENT_SECRET
+      if (![string]::IsNullOrWhiteSpace($client_secret_env)) {
+        $this.SetClientSecret(($client_secret_env | xconvert ToSecurestring))
+      }
+    } else {
+      $this.SetClientSecret($clientSecret)
+    }
     $this.FormatBaseUrl()
   }
 
   [void] SetAccessToken([string]$accessToken) {
     $this._accessToken = $accessToken
+  }
+
+  [void] SetClientSecret([securestring]$clientSecret) {
+    $this._clientSecret = $clientSecret
   }
 
   hidden [void] FormatBaseUrl() {
