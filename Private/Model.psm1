@@ -227,6 +227,7 @@ class CreateSecretOptions {
 class UpdateSecretOptions {
   [JsonPropertyName("secretName")]
   [string] $SecretName = [string]::Empty
+  [JsonIgnore(Condition = "WhenWritingNull")]
   [JsonPropertyName("newSecretName")]
   [string] $NewSecretName = $null
   [JsonPropertyName("workspaceId")]
@@ -239,12 +240,15 @@ class UpdateSecretOptions {
   [string] $SecretPath = "/"
   [JsonPropertyName("skipMultilineEncoding")]
   [System.Nullable[bool]] $NewSkipMultilineEncoding = $null
+  [JsonIgnore(Condition = "WhenWritingNull")]
   [JsonPropertyName("secretValue")]
   [string] $NewSecretValue = $null
+  [JsonIgnore(Condition = "WhenWritingNull")]
   [JsonPropertyName("secretComment")]
   [string] $NewSecretComment = $null
   [JsonPropertyName("secretMetadata")]
   [SecretMetadata[]] $NewMetadata = $null
+  [JsonIgnore(Condition = "WhenWritingNull")]
   [JsonPropertyName("secretReminderNote")]
   [string] $NewSecretReminderNote = $null
   [JsonPropertyName("secretReminderRepeatDays")]
