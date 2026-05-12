@@ -1,4 +1,4 @@
-﻿$MODULE_DATA = PsModuleBase\Read-ModuleData -File .\en-US\infisical.strings.psd1
+﻿$MODULE_DATA = PsModuleBase\Read-ModuleData -File ./en-US/infisical.strings.psd1
 $currentbuildPath = Resolve-Path "$PSScriptRoot/../BuildOutput/$ModuleName" -ea Ignore | Get-Item -ea Ignore
 $script:ModuleName = $MODULE_DATA.ModuleName
 $script:ModulePath = [IO.Directory]::Exists("$currentbuildPath") ? $currentbuildPath : (Get-Item $PSScriptRoot).Parent
