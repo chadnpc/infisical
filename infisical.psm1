@@ -64,6 +64,9 @@ class Infisical {
   static [Type[]] $ReturnTypes = ([Infisical]::Methods.ReturnType | Sort-Object -Unique Name)
   static [MethodInfo[]] $Methods = ([Infisical].GetMethods().Where({ $_.IsStatic -and !$_.IsHideBySig }))
 
+  static [void] WriteBanner() {
+    Write-Host ([PsModuleBase]::ReadModuledata("infisical")["BannerAscii"]) -f Green
+  }
   static [string] GetHelp() {
     return [PsModuleBase]::ReadModuledata("infisical")["HelpMessage"]
   }
@@ -85,8 +88,7 @@ $TypeAcceleratorsClass = [PsObject].Assembly.GetType('System.Management.Automati
 foreach ($Type in $typestoExport) {
   try {
     [void]$TypeAcceleratorsClass::Add($Type.FullName, $Type)
-  }
-  catch {
+  } catch {
     # Ignore if already exists
     $null
   }
@@ -107,8 +109,7 @@ foreach ($file in $scripts) {
   try {
     if ([string]::IsNullOrWhiteSpace($file.fullname)) { continue }
     . "$($file.fullname)"
-  }
-  catch {
+  } catch {
     Write-Warning "Failed to import function $($file.BaseName): $_"
     $host.UI.WriteErrorLine($_)
   }
