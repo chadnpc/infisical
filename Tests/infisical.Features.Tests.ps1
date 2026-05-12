@@ -184,7 +184,7 @@ Describe "Infisical KMS Operations" {
 
       $key = $client.Kms().GetKeyByIdAsync($getByIdOpts).GetAwaiter().GetResult()
       $key | Should Not BeNullOrEmpty
-      
+
       $keyId = if ($key -is [System.Text.Json.JsonElement]) { $key.GetProperty("id").GetString() } else { $key.id }
       $keyId | Should Be $script:kmsKeyId
     }
@@ -209,7 +209,7 @@ Describe "Infisical KMS Operations" {
       $updatedKey | Should Not BeNullOrEmpty
     }
 
-    # Retrieve PublicKey, ExportPrivateKey and BulkExport are testing depending on the key generated, 
+    # Retrieve PublicKey, ExportPrivateKey and BulkExport are testing depending on the key generated,
     # symmetric keys might not support public/private extraction but let's test if API allows or errors gracefully
     # We will wrap them in try-catch to allow graceful skip for symmetric keys or continue
     It "Retrieve Public Key [GET]" {
@@ -252,7 +252,7 @@ Describe "Infisical KMS Operations" {
 
       $ciphertext = $client.Kms().EncryptDataAsync($encryptOpts).GetAwaiter().GetResult()
       $script:testCiphertext = if ($ciphertext -is [System.Text.Json.JsonElement]) { $ciphertext.GetString() } else { $ciphertext }
-      
+
       $script:testCiphertext | Should Not BeNullOrEmpty
     }
 
@@ -263,7 +263,7 @@ Describe "Infisical KMS Operations" {
 
       $plaintextResult = $client.Kms().DecryptDataAsync($decryptOpts).GetAwaiter().GetResult()
       $actualPlaintext = if ($plaintextResult -is [System.Text.Json.JsonElement]) { $plaintextResult.GetString() } else { $plaintextResult }
-      
+
       $actualPlaintext | Should Be $script:testPlaintext
     }
   }
@@ -271,7 +271,7 @@ Describe "Infisical KMS Operations" {
   Context "Signing" {
     # Symmetric keys cannot sign. Creating a temporary asymmetric key for signing.
     $script:signKeyId = $null
-    
+
     It "Create Asymmetric Key for Signing Setup" {
       $createOpts = [CreateKmsKeyOptions]::new()
       $createOpts.ProjectId = $projectId
@@ -280,10 +280,10 @@ Describe "Infisical KMS Operations" {
       $createOpts.EncryptionAlgorithm = "rsa-2048"
 
       try {
-          $createdKey = $client.Kms().CreateKeyAsync($createOpts).GetAwaiter().GetResult()
-          $script:signKeyId = if ($createdKey -is [System.Text.Json.JsonElement]) { $createdKey.GetProperty("id").GetString() } else { $createdKey.id }
+        $createdKey = $client.Kms().CreateKeyAsync($createOpts).GetAwaiter().GetResult()
+        $script:signKeyId = if ($createdKey -is [System.Text.Json.JsonElement]) { $createdKey.GetProperty("id").GetString() } else { $createdKey.id }
       } catch {
-          # Gracefully ignore if asymmetric generation fails
+        # Gracefully ignore if asymmetric generation fails
       }
     }
 
@@ -301,7 +301,7 @@ Describe "Infisical KMS Operations" {
 
       $signature = $client.Kms().SignDataAsync($signOpts).GetAwaiter().GetResult()
       $script:testSignature = if ($signature -is [System.Text.Json.JsonElement]) { $signature.GetString() } else { $signature }
-      
+
       $script:testSignature | Should Not BeNullOrEmpty
     }
 
@@ -317,7 +317,7 @@ Describe "Infisical KMS Operations" {
 
       $isValidResult = $client.Kms().VerifySignatureAsync($verifyOpts).GetAwaiter().GetResult()
       $isValid = if ($isValidResult -is [System.Text.Json.JsonElement]) { $isValidResult.GetBoolean() } else { $isValidResult }
-      
+
       $isValid | Should Be $true
     }
 
@@ -332,7 +332,7 @@ Describe "Infisical KMS Operations" {
       $algorithms | Should Not BeNullOrEmpty
     }
   }
-  
+
   Context "Cleanup" {
     It "Delete Key [DEL]" {
       $deleteOpts = [DeleteKmsKeyOptions]::new()
@@ -340,11 +340,11 @@ Describe "Infisical KMS Operations" {
 
       $deletedKey = $client.Kms().DeleteKeyAsync($deleteOpts).GetAwaiter().GetResult()
       $deletedKey | Should Not BeNullOrEmpty
-      
+
       if ($null -ne $script:signKeyId) {
-          $deleteSignOpts = [DeleteKmsKeyOptions]::new()
-          $deleteSignOpts.KeyId = $script:signKeyId
-          $client.Kms().DeleteKeyAsync($deleteSignOpts).GetAwaiter().GetResult() | Out-Null
+        $deleteSignOpts = [DeleteKmsKeyOptions]::new()
+        $deleteSignOpts.KeyId = $script:signKeyId
+        $client.Kms().DeleteKeyAsync($deleteSignOpts).GetAwaiter().GetResult() | Out-Null
       }
     }
   }
