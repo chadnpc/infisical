@@ -1,33 +1,6 @@
 ﻿
 # verify the interactions and behavior of the module's components when they are integrated together.
 Describe "Integration tests: infisical" {
-  Context "Identity Auth" {
-    <#
-    It "Token Auth" {}
-
-    It "Universal Auth" {}
-
-    It "GCP Auth" {}
-
-    It "Alibaba Cloud Auth" {}
-
-    It "TLS Certificate Auth" {}
-
-    It "AWS Auth" {}
-
-    It "OCI Auth" {}
-
-    It "Azure Auth" {}
-
-    It "Kubernetes Auth" {}
-
-    It "OIDC Auth" {}
-
-    It "JWT Auth" {}
-
-    It "LDAP Auth" {}
-    #>
-  }
   Context "Secrets Management" {
     <#
     It "Environments CREATE" {
