@@ -28,12 +28,14 @@ class InfisicalClient {
   hidden [AuthClient] $_authClient
   hidden [SecretsClient] $_secretsClient
   hidden [PkiClient] $_pkiClient
+  hidden [IdentitiesClient] $_identitiesClient
 
   InfisicalClient([InfisicalSdkSettings]$settings) {
     $this._apiClient = [ApiClient]::new($settings.HostUri)
     $this._secretsClient = [SecretsClient]::new($this._apiClient)
     $this._authClient = [AuthClient]::new($this._apiClient, { param($accessToken) $this._apiClient.SetAccessToken($accessToken) })
     $this._pkiClient = [PkiClient]::new($this._apiClient)
+    $this._identitiesClient = [IdentitiesClient]::new($this._apiClient)
   }
 
   [AuthClient] Auth() {
@@ -46,6 +48,10 @@ class InfisicalClient {
 
   [PkiClient] Pki() {
     return $this._pkiClient
+  }
+
+  [IdentitiesClient] Identities() {
+    return $this._identitiesClient
   }
 }
 
@@ -71,7 +77,8 @@ class Infisical {
 $typestoExport = @(
   [ApiClient], [QueryBuilder], [UniversalAuth], [LdapAuth], [AuthClient], [Subscribers], [PkiClient], [SecretsClient], [SecretType], [InfisicalAuthMethod], [InfisicalException], [MachineIdentityCredential], [UniversalAuthLoginRequest], [LdapAuthLoginRequest], [ListSecretsOptions], [GetSecretOptions], [SecretMetadata],
   [CreateSecretOptions], [UpdateSecretOptions], [DeleteSecretOptions], [IssueCertificateOptions], [SubscriberIssuedCertificate], [RetrieveLatestCertificateBundleOptions], [CertificateBundle], [InfisicalSecret], [SecretImport], [ListSecretsResponse], [GetSecretResponse], [CreateSecretResponse], [UpdateSecretResponse],
-  [DeleteSecretResponse], [InfisicalUniversalAuth], [InfisicalTokenAuth], [InfisicalAuth], [InfisicalSdkSettings], [InfisicalSdkSettingsBuilder], [ObjectToDictionaryConverter], [SecretsUtil], [InfisicalClient], [Infisical]
+  [DeleteSecretResponse], [InfisicalUniversalAuth], [InfisicalTokenAuth], [InfisicalAuth], [InfisicalSdkSettings], [InfisicalSdkSettingsBuilder], [ObjectToDictionaryConverter], [SecretsUtil], [InfisicalClient], [Infisical],
+  [IdentitiesClient], [AddIdentityProjectAdditionalPrivilegeOptions], [IdentityProjectAdditionalPrivilegePermission], [IdentityProjectAdditionalPrivilegePermissionCondition], [IdentityProjectAdditionalPrivilegePermissionConditionEnvironment], [IdentityProjectAdditionalPrivilegeResponse]
 )
 $TypeAcceleratorsClass = [PsObject].Assembly.GetType('System.Management.Automation.TypeAccelerators')
 # Add type accelerators for every exportable type.
