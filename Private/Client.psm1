@@ -29,7 +29,8 @@ class UniversalAuth {
       $response = [MachineIdentityCredential]$responseObject
       $this._apiClient.SetAccessToken($response.AccessToken)
       return [Task]::FromResult($response)
-    } catch {
+    }
+    catch {
       throw [InfisicalException]::new("Failed to login", $_.Exception)
     }
   }
@@ -51,7 +52,8 @@ class LdapAuth {
       $response = [MachineIdentityCredential]$responseObject
       $this._apiClient.SetAccessToken($response.AccessToken)
       return [Task]::FromResult($response)
-    } catch {
+    }
+    catch {
       throw [InfisicalException]::new("Failed to login", $_.Exception)
     }
   }
@@ -93,7 +95,8 @@ class Subscribers {
       $responseObject = $this._apiClient.GetAsync([CertificateBundle], "/api/v1/pki/subscribers/$($options.SubscriberName)/latest-certificate-bundle", $dict).GetAwaiter().GetResult()
       $response = [CertificateBundle]$responseObject
       return [Task]::FromResult($response)
-    } catch {
+    }
+    catch {
       throw [InfisicalException]::new("Failed to retrieve latest certificate bundle", $_.Exception)
     }
   }
@@ -104,7 +107,8 @@ class Subscribers {
       $responseObject = $this._apiClient.PostAsync([SubscriberIssuedCertificate], "/api/v1/pki/subscribers/$($options.SubscriberName)/issue-certificate", $options, $true).GetAwaiter().GetResult()
       $response = [SubscriberIssuedCertificate]$responseObject
       return [Task]::FromResult($response)
-    } catch {
+    }
+    catch {
       throw [InfisicalException]::new("Failed to issue certificate", $_.Exception)
     }
   }
@@ -186,7 +190,8 @@ class SecretsClient {
       }
 
       return [Task]::FromResult($secretsList.ToArray())
-    } catch {
+    }
+    catch {
       throw [InfisicalException]::new("Failed to list secrets", $_.Exception)
     }
   }
@@ -204,7 +209,8 @@ class SecretsClient {
       }
 
       return [Task]::FromResult($response.Secret)
-    } catch {
+    }
+    catch {
       throw [InfisicalException]::new("Failed to get secret", $_.Exception)
     }
   }
@@ -215,7 +221,8 @@ class SecretsClient {
       $responseObject = $this._apiClient.PostAsync([CreateSecretResponse], "/api/v3/secrets/raw/$($options.SecretName)", $options, $true).GetAwaiter().GetResult()
       $response = [CreateSecretResponse]$responseObject
       return [Task]::FromResult($response.Secret)
-    } catch {
+    }
+    catch {
       throw [InfisicalException]::new("Failed to create secret", $_.Exception)
     }
   }
@@ -226,7 +233,8 @@ class SecretsClient {
       $responseObject = $this._apiClient.PatchAsync([UpdateSecretResponse], "/api/v3/secrets/raw/$($options.SecretName)", $options, $true).GetAwaiter().GetResult()
       $response = [UpdateSecretResponse]$responseObject
       return [Task]::FromResult($response.Secret)
-    } catch {
+    }
+    catch {
       throw [InfisicalException]::new("Failed to update secret", $_.Exception)
     }
   }
@@ -237,7 +245,8 @@ class SecretsClient {
       $responseObject = $this._apiClient.DeleteAsync([DeleteSecretResponse], "/api/v3/secrets/raw/$($options.SecretName)", $options, $true).GetAwaiter().GetResult()
       $response = [DeleteSecretResponse]$responseObject
       return [Task]::FromResult($response.Secret)
-    } catch {
+    }
+    catch {
       throw [InfisicalException]::new("Failed to delete secret", $_.Exception)
     }
   }
@@ -250,13 +259,14 @@ class IdentitiesClient {
     $this._apiClient = $apiClient
   }
 
-  [Task[object]] AddProjectAdditionalPrivilegeAsync([AddIdentityProjectAdditionalPrivilegeOptions]$options) {
+  [Task[System.Text.Json.JsonElement]] AddProjectAdditionalPrivilegeAsync([AddIdentityProjectAdditionalPrivilegeOptions]$options) {
     try {
       $options.Validate()
       $responseObject = $this._apiClient.PostAsync([IdentityProjectAdditionalPrivilegeResponse], "/api/v2/identity-project-additional-privilege", $options, $true).GetAwaiter().GetResult()
       $response = [IdentityProjectAdditionalPrivilegeResponse]$responseObject
       return [Task]::FromResult($response.Privilege)
-    } catch {
+    }
+    catch {
       $innerMessage = if ($null -ne $_.Exception) { $_.Exception.Message } else { $_.ToString() }
       throw [InfisicalException]::new("Failed to add additional privilege: $innerMessage", $_.Exception)
     }
