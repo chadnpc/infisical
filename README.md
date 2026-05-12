@@ -30,8 +30,10 @@ Install-Module infisical -Scope CurrentUser
 
 **🚀 Features**
 
-- **Advanced Authentication Support**
-- **Secrets Management** CRUD workflows (Create, Read, Update, Delete)
+- **Access Control**
+   Fine-grained, identity-aware permissions for users and machines
+- **Secret Delivery**
+   Access and manage secrets (Create, Read, Update, Delete)
 - **Public Key Infrastructure (PKI)**
 
 ## quick usage (*wip)
@@ -71,7 +73,8 @@ One-liner install and launch:
 ```
 
 - cmdlet: `Invoke-infisicalCli` (aliases: `infisical`, `infisicalCli`).
- EX:
+ ex:
+
   ```powershell
   infisical GetApiUsageLimits
   ```
