@@ -394,6 +394,238 @@ class DeleteSecretResponse {
   [JsonPropertyName("secret")]
   [InfisicalSecret] $Secret = [InfisicalSecret]::new()
 }
+
+class KmsKey {
+  [JsonPropertyName("id")]
+  [string] $Id
+  [JsonPropertyName("name")]
+  [string] $Name
+  [JsonPropertyName("description")]
+  [string] $Description
+  [JsonPropertyName("isDisabled")]
+  [bool] $IsDisabled
+}
+
+class ListKmsKeysOptions {
+  [JsonPropertyName("limit")]
+  [int] $Limit = 20
+  [JsonPropertyName("offset")]
+  [int] $Offset = 0
+  [JsonPropertyName("orderBy")]
+  [string] $OrderBy = "name"
+  [JsonPropertyName("orderDirection")]
+  [string] $OrderDirection = "asc"
+}
+
+class GetKmsKeyByIdOptions {
+  [JsonPropertyName("keyId")]
+  [string] $KeyId
+
+  [void] Validate() {
+    if ([string]::IsNullOrWhiteSpace($this.KeyId)) { throw [InfisicalException]::new("KeyId is required") }
+  }
+}
+
+class GetKmsKeyByNameOptions {
+  [JsonPropertyName("keyName")]
+  [string] $KeyName
+
+  [void] Validate() {
+    if ([string]::IsNullOrWhiteSpace($this.KeyName)) { throw [InfisicalException]::new("KeyName is required") }
+  }
+}
+
+class CreateKmsKeyOptions {
+  [JsonPropertyName("projectId")]
+  [string] $ProjectId
+  [JsonPropertyName("name")]
+  [string] $Name
+  [JsonPropertyName("description")]
+  [string] $Description
+  [JsonPropertyName("keyUsage")]
+  [string] $KeyUsage = "encrypt-decrypt"
+  [JsonPropertyName("encryptionAlgorithm")]
+  [string] $EncryptionAlgorithm = "aes-256-gcm"
+
+  [void] Validate() {
+    if ([string]::IsNullOrWhiteSpace($this.ProjectId)) { throw [InfisicalException]::new("ProjectId is required") }
+    if ([string]::IsNullOrWhiteSpace($this.Name)) { throw [InfisicalException]::new("Name is required") }
+  }
+}
+
+class UpdateKmsKeyOptions {
+  [JsonPropertyName("keyId")]
+  [string] $KeyId = [string]::Empty
+  [JsonIgnore(Condition = "WhenWritingNull")]
+  [JsonPropertyName("name")]
+  [string] $Name = $null
+  [JsonIgnore(Condition = "WhenWritingNull")]
+  [JsonPropertyName("isDisabled")]
+  [System.Nullable[bool]] $IsDisabled = $null
+  [JsonIgnore(Condition = "WhenWritingNull")]
+  [JsonPropertyName("description")]
+  [string] $Description = $null
+
+  [void] Validate() {
+    if ([string]::IsNullOrWhiteSpace($this.KeyId)) { throw [InfisicalException]::new("KeyId is required") }
+  }
+}
+
+class DeleteKmsKeyOptions {
+  [JsonPropertyName("keyId")]
+  [string] $KeyId
+
+  [void] Validate() {
+    if ([string]::IsNullOrWhiteSpace($this.KeyId)) { throw [InfisicalException]::new("KeyId is required") }
+  }
+}
+
+class RetrieveKmsPublicKeyOptions {
+  [JsonPropertyName("keyId")]
+  [string] $KeyId
+
+  [void] Validate() {
+    if ([string]::IsNullOrWhiteSpace($this.KeyId)) { throw [InfisicalException]::new("KeyId is required") }
+  }
+}
+
+class ExportKmsPrivateKeyOptions {
+  [JsonPropertyName("keyId")]
+  [string] $KeyId
+
+  [void] Validate() {
+    if ([string]::IsNullOrWhiteSpace($this.KeyId)) { throw [InfisicalException]::new("KeyId is required") }
+  }
+}
+
+class BulkExportPrivateKeysOptions {
+  [JsonPropertyName("keyIds")]
+  [string[]] $KeyIds
+
+  [void] Validate() {
+    if ($null -eq $this.KeyIds -or $this.KeyIds.Length -eq 0) { throw [InfisicalException]::new("KeyIds array cannot be empty") }
+  }
+}
+
+class EncryptKmsDataOptions {
+  [JsonPropertyName("keyId")]
+  [string] $KeyId = [string]::Empty
+  [JsonPropertyName("plaintext")]
+  [string] $Plaintext
+
+  [void] Validate() {
+    if ([string]::IsNullOrWhiteSpace($this.KeyId)) { throw [InfisicalException]::new("KeyId is required") }
+    if ([string]::IsNullOrWhiteSpace($this.Plaintext)) { throw [InfisicalException]::new("Plaintext is required") }
+  }
+}
+
+class DecryptKmsDataOptions {
+  [JsonPropertyName("keyId")]
+  [string] $KeyId = [string]::Empty
+  [JsonPropertyName("ciphertext")]
+  [string] $Ciphertext
+
+  [void] Validate() {
+    if ([string]::IsNullOrWhiteSpace($this.KeyId)) { throw [InfisicalException]::new("KeyId is required") }
+    if ([string]::IsNullOrWhiteSpace($this.Ciphertext)) { throw [InfisicalException]::new("Ciphertext is required") }
+  }
+}
+
+class SignKmsDataOptions {
+  [JsonPropertyName("keyId")]
+  [string] $KeyId = [string]::Empty
+  [JsonPropertyName("signingAlgorithm")]
+  [string] $SigningAlgorithm
+  [JsonPropertyName("data")]
+  [string] $Data
+  [JsonPropertyName("isDigest")]
+  [System.Nullable[bool]] $IsDigest = $false
+
+  [void] Validate() {
+    if ([string]::IsNullOrWhiteSpace($this.KeyId)) { throw [InfisicalException]::new("KeyId is required") }
+    if ([string]::IsNullOrWhiteSpace($this.SigningAlgorithm)) { throw [InfisicalException]::new("SigningAlgorithm is required") }
+    if ([string]::IsNullOrWhiteSpace($this.Data)) { throw [InfisicalException]::new("Data is required") }
+  }
+}
+
+class VerifyKmsSignatureOptions {
+  [JsonPropertyName("keyId")]
+  [string] $KeyId = [string]::Empty
+  [JsonPropertyName("data")]
+  [string] $Data
+  [JsonPropertyName("signature")]
+  [string] $Signature
+  [JsonPropertyName("signingAlgorithm")]
+  [string] $SigningAlgorithm
+  [JsonPropertyName("isDigest")]
+  [System.Nullable[bool]] $IsDigest = $false
+
+  [void] Validate() {
+    if ([string]::IsNullOrWhiteSpace($this.KeyId)) { throw [InfisicalException]::new("KeyId is required") }
+    if ([string]::IsNullOrWhiteSpace($this.Data)) { throw [InfisicalException]::new("Data is required") }
+    if ([string]::IsNullOrWhiteSpace($this.Signature)) { throw [InfisicalException]::new("Signature is required") }
+    if ([string]::IsNullOrWhiteSpace($this.SigningAlgorithm)) { throw [InfisicalException]::new("SigningAlgorithm is required") }
+  }
+}
+
+class ListKmsSigningAlgorithmsOptions {
+  [JsonPropertyName("keyId")]
+  [string] $KeyId
+
+  [void] Validate() {
+    if ([string]::IsNullOrWhiteSpace($this.KeyId)) { throw [InfisicalException]::new("KeyId is required") }
+  }
+}
+
+class KmsKeyResponse {
+  [JsonPropertyName("key")]
+  [object] $Key
+}
+
+class KmsKeysResponse {
+  [JsonPropertyName("keys")]
+  [object[]] $Keys
+}
+
+class KmsEncryptResponse {
+  [JsonPropertyName("ciphertext")]
+  [string] $Ciphertext
+}
+
+class KmsDecryptResponse {
+  [JsonPropertyName("plaintext")]
+  [string] $Plaintext
+}
+
+class KmsSignResponse {
+  [JsonPropertyName("signature")]
+  [string] $Signature
+}
+
+class KmsVerifyResponse {
+  [JsonPropertyName("isValid")]
+  [bool] $IsValid
+}
+
+class KmsPublicKeyResponse {
+  [JsonPropertyName("publicKey")]
+  [string] $PublicKey
+}
+
+class KmsPrivateKeyResponse {
+  [JsonPropertyName("privateKey")]
+  [string] $PrivateKey
+}
+
+class KmsBulkExportPrivateKeysResponse {
+  [JsonPropertyName("keys")]
+  [object[]] $Keys
+}
+
+class KmsSigningAlgorithmsResponse {
+  [JsonPropertyName("signingAlgorithms")]
+  [string[]] $SigningAlgorithms
+}
 #endregion
 
 class InfisicalUniversalAuth {
