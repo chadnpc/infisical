@@ -242,3 +242,23 @@ class SecretsClient {
     }
   }
 }
+
+class IdentitiesClient {
+  hidden [ApiClient] $_apiClient
+
+  IdentitiesClient([ApiClient]$apiClient) {
+    $this._apiClient = $apiClient
+  }
+
+  [Task[object]] AddProjectAdditionalPrivilegeAsync([AddIdentityProjectAdditionalPrivilegeOptions]$options) {
+    try {
+      $options.Validate()
+      $responseObject = $this._apiClient.PostAsync([IdentityProjectAdditionalPrivilegeResponse], "/api/v2/identity-project-additional-privilege", $options, $true).GetAwaiter().GetResult()
+      $response = [IdentityProjectAdditionalPrivilegeResponse]$responseObject
+      return [Task]::FromResult($response.Privilege)
+    } catch {
+      $innerMessage = if ($null -ne $_.Exception) { $_.Exception.Message } else { $_.ToString() }
+      throw [InfisicalException]::new("Failed to add additional privilege: $innerMessage", $_.Exception)
+    }
+  }
+}
