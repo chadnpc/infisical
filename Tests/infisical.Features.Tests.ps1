@@ -18,7 +18,8 @@ Describe "Infisical Login tests " {
     $errorCaught | Should Be $true
   }
   It "Successfuly login when we use correct credentials" {
-    # todo add tests here...
+    $credential = $client.Auth().UniversalAuth().LoginAsync($env:INFISICAL_MACHINE_IDENTITY_CLIENT_ID, ($env:INFISICAL_MACHINE_IDENTITY_CLIENT_SECRET | xconvert ToSecurestring)).GetAwaiter().GetResult()
+    $credential.AccessToken | Should Not BeNullOrEmpty
   }
 }
 
@@ -41,29 +42,19 @@ Describe "Infisical Access Control tests " {
   }
 
   It "Adding Additional Privileges : Can Grant specific, scoped privileges to users and machine identities on top of their predefined roles." {
-    <#
-    todo: convert this snippet to use current module classes
-    curl --request POST \
-    --url https://us.infisical.com/api/v2/identity-project-additional-privilege \
-    --header 'Authorization: Bearer <access-token>' \
-    --header 'Content-Type: application/json' \
-    --data '{
-      "identityId": "<identity-id>",
-      "projectId": "<project-id>",
-      "slug": "read-secrets-prod",
-      "permissions": [
-        {
-          "subject": "secrets",
-          "action": ["read", "readValue"],
-          "conditions": {
-            "environment": {
-              "$eq": "production"
-            }
-          }
-        }
-      ]
-    }'
-    #>
+    $addOptions = [AddIdentityProjectAdditionalPrivilegeOptions]::new()
+    $addOptions.IdentityId = $clientId
+    $addOptions.ProjectId = $projectId
+    $addOptions.Slug = "read-secrets-prod-$([guid]::NewGuid())"
+
+    $condEnv = [IdentityProjectAdditionalPrivilegePermissionConditionEnvironment]::new("production")
+    $cond = [IdentityProjectAdditionalPrivilegePermissionCondition]::new($condEnv)
+    $perm = [IdentityProjectAdditionalPrivilegePermission]::new("secrets", @("read", "readValue"), $cond)
+
+    $addOptions.Permissions = @($perm)
+
+    $privilege = $client.Identities().AddProjectAdditionalPrivilegeAsync($addOptions).GetAwaiter().GetResult()
+    $privilege | Should Not BeNullOrEmpty
   }
 
   It "Creates a new secret" {
