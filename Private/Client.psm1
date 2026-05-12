@@ -11,14 +11,17 @@ using module ./Exceptions.psm1
 #Requires -Modules clihelper.xconvert
 
 class UniversalAuth {
-  hidden [ApiClient] $_apiClient
-  hidden [scriptblock] $_setAccessTokenFunc
+  hidden [ValidateNotNullOrEmpty()][ApiClient] $_apiClient
+  hidden [ValidateNotNullOrEmpty()][scriptblock] $_setAccessTokenFunc
 
   UniversalAuth([ApiClient]$apiClient, [scriptblock]$setAccessTokenFunc) {
     $this._apiClient = $apiClient
     $this._setAccessTokenFunc = $setAccessTokenFunc
   }
 
+  [Task[MachineIdentityCredential]] LoginAsync([string]$clientId) {
+    return $this.LoginAsync($clientId, $this._apiClient.clientSecret)
+  }
   [Task[MachineIdentityCredential]] LoginAsync([string]$clientId, [securestring]$clientSecret) {
     try {
       $loginRequest = [UniversalAuthLoginRequest]::new($clientId, $clientSecret)
