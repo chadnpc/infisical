@@ -3,12 +3,12 @@ using namespace System.Security.Cryptography
 using module ..\infisical.psm1
 
 # Load environment variables from the root .env file
-Read-Env (Resolve-Path ..\.env).Path | Set-Env
+Read-Env ([IO.Path]::Combine(($PSScriptRoot | Split-Path), ".env")) | Set-Env
 
 Describe "Infisical Login tests " {
+  $settings = [InfisicalSdkSettingsBuilder]::new().WithHostUri("https://app.infisical.com").Build()
+  $client = [InfisicalClient]::new($settings)
   It "Fails to login when we use invalid credentials" {
-    $settings = [InfisicalSdkSettingsBuilder]::new().WithHostUri("https://app.infisical.com").Build()
-    $client = [InfisicalClient]::new($settings)
     $errorCaught = $false
     try {
       $client.Auth().UniversalAuth().LoginAsync("fake-id", ("fake-secret" | xconvert ToSecurestring)).GetAwaiter().GetResult() | Out-Null
@@ -16,6 +16,9 @@ Describe "Infisical Login tests " {
       $errorCaught = $true
     }
     $errorCaught | Should Be $true
+  }
+  It "Successfuly login when we use correct credentials" {
+    # todo add tests here...
   }
 }
 
@@ -35,6 +38,32 @@ Describe "Infisical Access Control tests " {
     Write-Host "Sleeping for 5 seconds"
     Start-Sleep -Seconds 5
     Write-Host "Done sleeping"
+  }
+
+  It "Adding Additional Privileges : Can Grant specific, scoped privileges to users and machine identities on top of their predefined roles." {
+    <#
+    todo: convert this snippet to use current module classes
+    curl --request POST \
+    --url https://us.infisical.com/api/v2/identity-project-additional-privilege \
+    --header 'Authorization: Bearer <access-token>' \
+    --header 'Content-Type: application/json' \
+    --data '{
+      "identityId": "<identity-id>",
+      "projectId": "<project-id>",
+      "slug": "read-secrets-prod",
+      "permissions": [
+        {
+          "subject": "secrets",
+          "action": ["read", "readValue"],
+          "conditions": {
+            "environment": {
+              "$eq": "production"
+            }
+          }
+        }
+      ]
+    }'
+    #>
   }
 
   It "Creates a new secret" {
