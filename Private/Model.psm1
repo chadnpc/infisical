@@ -45,6 +45,16 @@ class IdentityProjectAdditionalPrivilegePermission {
   }
 }
 
+class IdentityProjectAdditionalPrivilegeType {
+  [JsonPropertyName("isTemporary")]
+  [bool] $IsTemporary = $false
+
+  IdentityProjectAdditionalPrivilegeType() {}
+  IdentityProjectAdditionalPrivilegeType([bool]$isTemporary) {
+    $this.IsTemporary = $isTemporary
+  }
+}
+
 class AddIdentityProjectAdditionalPrivilegeOptions {
   [JsonPropertyName("identityId")]
   [string] $IdentityId
@@ -52,9 +62,11 @@ class AddIdentityProjectAdditionalPrivilegeOptions {
   [string] $ProjectId
   [JsonPropertyName("slug")]
   [string] $Slug
+  [JsonPropertyName("type")]
+  [IdentityProjectAdditionalPrivilegeType] $Type = [IdentityProjectAdditionalPrivilegeType]::new($false)
   [JsonPropertyName("permissions")]
   [IdentityProjectAdditionalPrivilegePermission[]] $Permissions
-  
+
   AddIdentityProjectAdditionalPrivilegeOptions() {}
 
   [void] Validate() {
