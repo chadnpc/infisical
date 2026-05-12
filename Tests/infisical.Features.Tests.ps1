@@ -3,16 +3,12 @@ using namespace System.Security.Cryptography
 using module ..\infisical.psm1
 
 # Load environment variables from the root .env file
-Read-Env "$PSScriptRoot\..\.env" | Set-Env
+Read-Env (Resolve-Path ..\.env).Path | Set-Env
 
-Describe "Infisical Deadlock tests " {
-  It "Does not deadlock when using synchronous blocking (.GetAwaiter().GetResult())" {
+Describe "Infisical Login tests " {
+  It "Fails to login when we use invalid credentials" {
     $settings = [InfisicalSdkSettingsBuilder]::new().WithHostUri("https://app.infisical.com").Build()
     $client = [InfisicalClient]::new($settings)
-
-    # In PowerShell, calling .GetAwaiter().GetResult() on the main thread
-    # could cause deadlocks if SynchronizationContext is tricky.
-    # Here we expect it to fail gracefully with an auth error, NOT freeze.
     $errorCaught = $false
     try {
       $client.Auth().UniversalAuth().LoginAsync("fake-id", ("fake-secret" | xconvert ToSecurestring)).GetAwaiter().GetResult() | Out-Null
