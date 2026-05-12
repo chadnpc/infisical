@@ -9,6 +9,68 @@ using module ./Exceptions.psm1
 
 #region apimodels
 
+class IdentityProjectAdditionalPrivilegePermissionConditionEnvironment {
+  [JsonPropertyName("`$eq")]
+  [string] $Eq
+
+  IdentityProjectAdditionalPrivilegePermissionConditionEnvironment() {}
+  IdentityProjectAdditionalPrivilegePermissionConditionEnvironment([string]$eq) {
+    $this.Eq = $eq
+  }
+}
+
+class IdentityProjectAdditionalPrivilegePermissionCondition {
+  [JsonPropertyName("environment")]
+  [IdentityProjectAdditionalPrivilegePermissionConditionEnvironment] $Environment
+
+  IdentityProjectAdditionalPrivilegePermissionCondition() {}
+  IdentityProjectAdditionalPrivilegePermissionCondition([IdentityProjectAdditionalPrivilegePermissionConditionEnvironment]$environment) {
+    $this.Environment = $environment
+  }
+}
+
+class IdentityProjectAdditionalPrivilegePermission {
+  [JsonPropertyName("subject")]
+  [string] $Subject
+  [JsonPropertyName("action")]
+  [string[]] $Action
+  [JsonPropertyName("conditions")]
+  [IdentityProjectAdditionalPrivilegePermissionCondition] $Conditions
+
+  IdentityProjectAdditionalPrivilegePermission() {}
+  IdentityProjectAdditionalPrivilegePermission([string]$subject, [string[]]$action, [IdentityProjectAdditionalPrivilegePermissionCondition]$conditions) {
+    $this.Subject = $subject
+    $this.Action = $action
+    $this.Conditions = $conditions
+  }
+}
+
+class AddIdentityProjectAdditionalPrivilegeOptions {
+  [JsonPropertyName("identityId")]
+  [string] $IdentityId
+  [JsonPropertyName("projectId")]
+  [string] $ProjectId
+  [JsonPropertyName("slug")]
+  [string] $Slug
+  [JsonPropertyName("permissions")]
+  [IdentityProjectAdditionalPrivilegePermission[]] $Permissions
+  
+  AddIdentityProjectAdditionalPrivilegeOptions() {}
+
+  [void] Validate() {
+    if ([string]::IsNullOrEmpty($this.IdentityId)) { throw [InfisicalException]::new("IdentityId is required") }
+    if ([string]::IsNullOrEmpty($this.ProjectId)) { throw [InfisicalException]::new("ProjectId is required") }
+    if ([string]::IsNullOrEmpty($this.Slug)) { throw [InfisicalException]::new("Slug is required") }
+    if ($null -eq $this.Permissions) { throw [InfisicalException]::new("Permissions is required") }
+  }
+}
+
+class IdentityProjectAdditionalPrivilegeResponse {
+  [JsonPropertyName("privilege")]
+  [object] $Privilege
+}
+
+
 class MachineIdentityCredential {
   [JsonPropertyName("accessToken")]
   [string] $AccessToken
