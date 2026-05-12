@@ -78,7 +78,7 @@ $typestoExport = @(
   [ApiClient], [QueryBuilder], [UniversalAuth], [LdapAuth], [AuthClient], [Subscribers], [PkiClient], [SecretsClient], [SecretType], [InfisicalAuthMethod], [InfisicalException], [MachineIdentityCredential], [UniversalAuthLoginRequest], [LdapAuthLoginRequest], [ListSecretsOptions], [GetSecretOptions], [SecretMetadata],
   [CreateSecretOptions], [UpdateSecretOptions], [DeleteSecretOptions], [IssueCertificateOptions], [SubscriberIssuedCertificate], [RetrieveLatestCertificateBundleOptions], [CertificateBundle], [InfisicalSecret], [SecretImport], [ListSecretsResponse], [GetSecretResponse], [CreateSecretResponse], [UpdateSecretResponse],
   [DeleteSecretResponse], [InfisicalUniversalAuth], [InfisicalTokenAuth], [InfisicalAuth], [InfisicalSdkSettings], [InfisicalSdkSettingsBuilder], [ObjectToDictionaryConverter], [SecretsUtil], [InfisicalClient], [Infisical],
-  [IdentitiesClient], [AddIdentityProjectAdditionalPrivilegeOptions], [IdentityProjectAdditionalPrivilegePermission], [IdentityProjectAdditionalPrivilegePermissionCondition], [IdentityProjectAdditionalPrivilegePermissionConditionEnvironment], [IdentityProjectAdditionalPrivilegeResponse]
+  [IdentitiesClient], [AddIdentityProjectAdditionalPrivilegeOptions], [IdentityProjectAdditionalPrivilegePermission], [IdentityProjectAdditionalPrivilegePermissionCondition], [IdentityProjectAdditionalPrivilegePermissionConditionEnvironment], [IdentityProjectAdditionalPrivilegeResponse], [IdentityProjectAdditionalPrivilegeType]
 )
 $TypeAcceleratorsClass = [PsObject].Assembly.GetType('System.Management.Automation.TypeAccelerators')
 # Add type accelerators for every exportable type.
