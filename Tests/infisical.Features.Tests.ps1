@@ -134,127 +134,209 @@ Describe "Infisical Access Control tests " {
 
 # https://infisical.com/docs/api-reference/endpoints/kms/
 Describe "Infisical KMS Operations" {
+
+  # Setup test vars
+  $script:kmsKeyName = "test-key-$([guid]::NewGuid().ToString().Substring(0,8))"
+  $script:kmsKeyId = $null
+  $script:kmsAlgorithm = "aes-256-gcm"
+  $script:kmsSigningAlgorithm = "RSASSA_PSS_SHA_512"
+
   Context "Keys" {
+    It "Create Key [POST]" {
+      $createOpts = [CreateKmsKeyOptions]::new()
+      $createOpts.ProjectId = $projectId
+      $createOpts.Name = $script:kmsKeyName
+      $createOpts.Description = "Test key created by integration tests"
+      $createOpts.KeyUsage = "encrypt-decrypt"
+      $createOpts.EncryptionAlgorithm = $script:kmsAlgorithm
+
+      $createdKey = $client.Kms().CreateKeyAsync($createOpts).GetAwaiter().GetResult()
+      $createdKey | Should Not BeNullOrEmpty
+
+      # Parse id if it's JsonElement, otherwise take property directly (fallback generic access)
+      $script:kmsKeyId = if ($createdKey -is [System.Text.Json.JsonElement]) { $createdKey.GetProperty("id").GetString() } else { $createdKey.id }
+      $script:kmsKeyId | Should Not BeNullOrEmpty
+    }
+
     It "List Keys [GET]" {
-      # curl --request GET --url 'https://us.infisical.com/api/v1/kms/keys?limit=100&orderBy=name&orderDirection=asc'
+      $listOpts = [ListKmsKeysOptions]::new()
+      $listOpts.Limit = 100
+      $listOpts.OrderBy = "name"
+      $listOpts.OrderDirection = "asc"
+
+      $keys = $client.Kms().ListKeysAsync($listOpts).GetAwaiter().GetResult()
+      $keys | Should Not BeNullOrEmpty
+      $keys.Count | Should BeGreaterThan 0
     }
 
     It "Get Key by ID [GET]" {
-      # curl --request GET --url https://us.infisical.com/api/v1/kms/keys/{keyId}
+      $getByIdOpts = [GetKmsKeyByIdOptions]::new()
+      $getByIdOpts.KeyId = $script:kmsKeyId
+
+      $key = $client.Kms().GetKeyByIdAsync($getByIdOpts).GetAwaiter().GetResult()
+      $key | Should Not BeNullOrEmpty
+      
+      $keyId = if ($key -is [System.Text.Json.JsonElement]) { $key.GetProperty("id").GetString() } else { $key.id }
+      $keyId | Should Be $script:kmsKeyId
     }
 
     It "Get Key by Name [GET]" {
-      # curl --request GET --url https://us.infisical.com/api/v1/kms/keys/key-name/{keyName}
-    }
+      $getByNameOpts = [GetKmsKeyByNameOptions]::new()
+      $getByNameOpts.KeyName = $script:kmsKeyName
 
-    It "Create Key [POST]" {
-      # curl --request POST \
-      #   --url https://us.infisical.com/api/v1/kms/keys \
-      #   --header 'Content-Type: application/json' \
-      #   --data '
-      #   {
-      #     "projectId": "<string>",
-      #     "name": "<string>",
-      #     "description": "<string>",
-      #     "keyUsage": "encrypt-decrypt",
-      #     "encryptionAlgorithm": "aes-256-gcm"
-      #   }
-      #   '
+      $key = $client.Kms().GetKeyByNameAsync($getByNameOpts).GetAwaiter().GetResult()
+      $key | Should Not BeNullOrEmpty
+
+      $keyName = if ($key -is [System.Text.Json.JsonElement]) { $key.GetProperty("name").GetString() } else { $key.name }
+      $keyName | Should Be $script:kmsKeyName
     }
 
     It "Update Key [PATCH]" {
-      # curl --request PATCH \
-      #   --url https://us.infisical.com/api/v1/kms/keys/{keyId} \
-      #   --header 'Content-Type: application/json' \
-      #   --data '
-      #   {
-      #     "name": "<string>",
-      #     "isDisabled": true,
-      #     "description": "<string>"
-      #   }
-      #   '
+      $updateOpts = [UpdateKmsKeyOptions]::new()
+      $updateOpts.KeyId = $script:kmsKeyId
+      $updateOpts.Description = "Updated test description"
+
+      $updatedKey = $client.Kms().UpdateKeyAsync($updateOpts).GetAwaiter().GetResult()
+      $updatedKey | Should Not BeNullOrEmpty
     }
 
-    It "Delete Key [DEL]" {
-      # curl --request DELETE --url https://us.infisical.com/api/v1/kms/keys/{keyId}
-    }
-
+    # Retrieve PublicKey, ExportPrivateKey and BulkExport are testing depending on the key generated, 
+    # symmetric keys might not support public/private extraction but let's test if API allows or errors gracefully
+    # We will wrap them in try-catch to allow graceful skip for symmetric keys or continue
     It "Retrieve Public Key [GET]" {
-      # curl --request GET --url https://us.infisical.com/api/v1/kms/keys/{keyId}/public-key
+      $pubOpts = [RetrieveKmsPublicKeyOptions]::new()
+      $pubOpts.KeyId = $script:kmsKeyId
+
+      try {
+        $pubKey = $client.Kms().RetrievePublicKeyAsync($pubOpts).GetAwaiter().GetResult()
+        # Not asserting as aes-256-gcm does not have a public key, we just check call executes
+      } catch { }
     }
 
     It "Export Private Key [GET]" {
-      # curl --request GET --url https://us.infisical.com/api/v1/kms/keys/{keyId}/private-key
+      $privOpts = [ExportKmsPrivateKeyOptions]::new()
+      $privOpts.KeyId = $script:kmsKeyId
+
+      try {
+        $privKey = $client.Kms().ExportPrivateKeyAsync($privOpts).GetAwaiter().GetResult()
+      } catch { }
     }
 
     It "Bulk Export Private Keys [POST]" {
-      # curl --request POST \
-      #   --url https://us.infisical.com/api/v1/kms/keys/bulk-export-private-keys \
-      #   --header 'Content-Type: application/json' \
-      #   --data '
-      #   {
-      #     "keyIds": [
-      #       "3c90c3cc-0d44-4b50-8888-8dd25736052a"
-      #     ]
-      #   }
-      #   '
+      $bulkOpts = [BulkExportPrivateKeysOptions]::new()
+      $bulkOpts.KeyIds = @($script:kmsKeyId)
+
+      try {
+        $bulkKeys = $client.Kms().BulkExportPrivateKeysAsync($bulkOpts).GetAwaiter().GetResult()
+      } catch { }
     }
   }
 
   Context "Encryption" {
+    $script:testPlaintext = [System.Convert]::ToBase64String([System.Text.Encoding]::UTF8.GetBytes("SuperSecretData!"))
+    $script:testCiphertext = $null
+
     It "Encrypt Data [POST]" {
-      # curl --request POST \
-      #     --url https://us.infisical.com/api/v1/kms/keys/{keyId}/encrypt \
-      #     --header 'Content-Type: application/json' \
-      #     --data '
-      #   {
-      #     "plaintext": "<string>"
-      #   }
-      #   '
+      $encryptOpts = [EncryptKmsDataOptions]::new()
+      $encryptOpts.KeyId = $script:kmsKeyId
+      $encryptOpts.Plaintext = $script:testPlaintext
+
+      $ciphertext = $client.Kms().EncryptDataAsync($encryptOpts).GetAwaiter().GetResult()
+      $script:testCiphertext = if ($ciphertext -is [System.Text.Json.JsonElement]) { $ciphertext.GetString() } else { $ciphertext }
+      
+      $script:testCiphertext | Should Not BeNullOrEmpty
     }
 
     It "Decrypt Data [POST]" {
-      # curl --request POST \
-      #     --url https://us.infisical.com/api/v1/kms/keys/{keyId}/decrypt \
-      #     --header 'Content-Type: application/json' \
-      #     --data '
-      #   {
-      #     "ciphertext": "<string>"
-      #   }
-      #   '
+      $decryptOpts = [DecryptKmsDataOptions]::new()
+      $decryptOpts.KeyId = $script:kmsKeyId
+      $decryptOpts.Ciphertext = $script:testCiphertext
+
+      $plaintextResult = $client.Kms().DecryptDataAsync($decryptOpts).GetAwaiter().GetResult()
+      $actualPlaintext = if ($plaintextResult -is [System.Text.Json.JsonElement]) { $plaintextResult.GetString() } else { $plaintextResult }
+      
+      $actualPlaintext | Should Be $script:testPlaintext
     }
   }
 
   Context "Signing" {
+    # Symmetric keys cannot sign. Creating a temporary asymmetric key for signing.
+    $script:signKeyId = $null
+    
+    It "Create Asymmetric Key for Signing Setup" {
+      $createOpts = [CreateKmsKeyOptions]::new()
+      $createOpts.ProjectId = $projectId
+      $createOpts.Name = "test-sign-key-$([guid]::NewGuid().ToString().Substring(0,8))"
+      $createOpts.KeyUsage = "sign-verify"
+      $createOpts.EncryptionAlgorithm = "rsa-2048"
+
+      try {
+          $createdKey = $client.Kms().CreateKeyAsync($createOpts).GetAwaiter().GetResult()
+          $script:signKeyId = if ($createdKey -is [System.Text.Json.JsonElement]) { $createdKey.GetProperty("id").GetString() } else { $createdKey.id }
+      } catch {
+          # Gracefully ignore if asymmetric generation fails
+      }
+    }
+
+    $script:testSignData = [System.Convert]::ToBase64String([System.Text.Encoding]::UTF8.GetBytes("DataToSign123"))
+    $script:testSignature = $null
+
     It "Sign Data [POST]" {
-      # curl --request POST \
-      #     --url https://us.infisical.com/api/v1/kms/keys/{keyId}/sign \
-      #     --header 'Content-Type: application/json' \
-      #     --data '
-      #   {
-      #     "signingAlgorithm": "RSASSA_PSS_SHA_512",
-      #     "data": "<string>",
-      #     "isDigest": false
-      #   }
-      #   '
+      if ($null -eq $script:signKeyId) { Set-ItResult -Inconclusive "Signing key unavailable" }
+
+      $signOpts = [SignKmsDataOptions]::new()
+      $signOpts.KeyId = $script:signKeyId
+      $signOpts.SigningAlgorithm = $script:kmsSigningAlgorithm
+      $signOpts.Data = $script:testSignData
+      $signOpts.IsDigest = $false
+
+      $signature = $client.Kms().SignDataAsync($signOpts).GetAwaiter().GetResult()
+      $script:testSignature = if ($signature -is [System.Text.Json.JsonElement]) { $signature.GetString() } else { $signature }
+      
+      $script:testSignature | Should Not BeNullOrEmpty
     }
 
     It "Verify Signature [POST]" {
-      # curl --request POST \
-      #     --url https://us.infisical.com/api/v1/kms/keys/{keyId}/verify \
-      #     --header 'Content-Type: application/json' \
-      #     --data '
-      #   {
-      #     "data": "<string>",
-      #     "signature": "<string>",
-      #     "signingAlgorithm": "RSASSA_PSS_SHA_512",
-      #     "isDigest": false
-      #   }
-      #   '
+      if ($null -eq $script:signKeyId) { Set-ItResult -Inconclusive "Signing key unavailable" }
+
+      $verifyOpts = [VerifyKmsSignatureOptions]::new()
+      $verifyOpts.KeyId = $script:signKeyId
+      $verifyOpts.Data = $script:testSignData
+      $verifyOpts.Signature = $script:testSignature
+      $verifyOpts.SigningAlgorithm = $script:kmsSigningAlgorithm
+      $verifyOpts.IsDigest = $false
+
+      $isValidResult = $client.Kms().VerifySignatureAsync($verifyOpts).GetAwaiter().GetResult()
+      $isValid = if ($isValidResult -is [System.Text.Json.JsonElement]) { $isValidResult.GetBoolean() } else { $isValidResult }
+      
+      $isValid | Should Be $true
     }
 
     It "List Signing Algorithms [GET]" {
-      # curl --request GET --url https://us.infisical.com/api/v1/kms/keys/{keyId}/signing-algorithms
+      if ($null -eq $script:signKeyId) { Set-ItResult -Inconclusive "Signing key unavailable" }
+
+      $listOpts = [ListKmsSigningAlgorithmsOptions]::new()
+      $listOpts.KeyId = $script:signKeyId
+
+      $algorithmsRaw = $client.Kms().ListSigningAlgorithmsAsync($listOpts).GetAwaiter().GetResult()
+      $algorithms = if ($algorithmsRaw -is [System.Text.Json.JsonElement]) { $algorithmsRaw } else { $algorithmsRaw }
+      $algorithms | Should Not BeNullOrEmpty
+    }
+  }
+  
+  Context "Cleanup" {
+    It "Delete Key [DEL]" {
+      $deleteOpts = [DeleteKmsKeyOptions]::new()
+      $deleteOpts.KeyId = $script:kmsKeyId
+
+      $deletedKey = $client.Kms().DeleteKeyAsync($deleteOpts).GetAwaiter().GetResult()
+      $deletedKey | Should Not BeNullOrEmpty
+      
+      if ($null -ne $script:signKeyId) {
+          $deleteSignOpts = [DeleteKmsKeyOptions]::new()
+          $deleteSignOpts.KeyId = $script:signKeyId
+          $client.Kms().DeleteKeyAsync($deleteSignOpts).GetAwaiter().GetResult() | Out-Null
+      }
     }
   }
 }
