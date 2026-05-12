@@ -272,3 +272,179 @@ class IdentitiesClient {
     }
   }
 }
+
+class KmsClient {
+  hidden [ApiClient] $_apiClient
+
+  KmsClient([ApiClient]$apiClient) {
+    $this._apiClient = $apiClient
+  }
+
+  [Task[object[]]] ListKeysAsync([ListKmsKeysOptions]$options) {
+    try {
+      $dict = [ObjectToDictionaryConverter]::ToDictionary($options, $false)
+      $responseObject = $this._apiClient.GetAsync([KmsKeysResponse], "/api/v1/kms/keys", $dict).GetAwaiter().GetResult()
+      $response = [KmsKeysResponse]$responseObject
+      return [Task]::FromResult($response.Keys)
+    }
+    catch {
+      throw [InfisicalException]::new("Failed to list KMS keys", $_.Exception)
+    }
+  }
+
+  [Task[object]] GetKeyByIdAsync([GetKmsKeyByIdOptions]$options) {
+    try {
+      $options.Validate()
+      $responseObject = $this._apiClient.GetAsync([KmsKeyResponse], "/api/v1/kms/keys/$($options.KeyId)", @{}).GetAwaiter().GetResult()
+      $response = [KmsKeyResponse]$responseObject
+      return [Task]::FromResult($response.Key)
+    }
+    catch {
+      throw [InfisicalException]::new("Failed to get KMS key by ID", $_.Exception)
+    }
+  }
+
+  [Task[object]] GetKeyByNameAsync([GetKmsKeyByNameOptions]$options) {
+    try {
+      $options.Validate()
+      $responseObject = $this._apiClient.GetAsync([KmsKeyResponse], "/api/v1/kms/keys/key-name/$($options.KeyName)", @{}).GetAwaiter().GetResult()
+      $response = [KmsKeyResponse]$responseObject
+      return [Task]::FromResult($response.Key)
+    }
+    catch {
+      throw [InfisicalException]::new("Failed to get KMS key by name", $_.Exception)
+    }
+  }
+
+  [Task[object]] CreateKeyAsync([CreateKmsKeyOptions]$options) {
+    try {
+      $options.Validate()
+      $responseObject = $this._apiClient.PostAsync([KmsKeyResponse], "/api/v1/kms/keys", $options, $true).GetAwaiter().GetResult()
+      $response = [KmsKeyResponse]$responseObject
+      return [Task]::FromResult($response.Key)
+    }
+    catch {
+      throw [InfisicalException]::new("Failed to create KMS key", $_.Exception)
+    }
+  }
+
+  [Task[object]] UpdateKeyAsync([UpdateKmsKeyOptions]$options) {
+    try {
+      $options.Validate()
+      $responseObject = $this._apiClient.PatchAsync([KmsKeyResponse], "/api/v1/kms/keys/$($options.KeyId)", $options, $true).GetAwaiter().GetResult()
+      $response = [KmsKeyResponse]$responseObject
+      return [Task]::FromResult($response.Key)
+    }
+    catch {
+      throw [InfisicalException]::new("Failed to update KMS key", $_.Exception)
+    }
+  }
+
+  [Task[object]] DeleteKeyAsync([DeleteKmsKeyOptions]$options) {
+    try {
+      $options.Validate()
+      $responseObject = $this._apiClient.DeleteAsync([KmsKeyResponse], "/api/v1/kms/keys/$($options.KeyId)", $options, $true).GetAwaiter().GetResult()
+      $response = [KmsKeyResponse]$responseObject
+      return [Task]::FromResult($response.Key)
+    }
+    catch {
+      throw [InfisicalException]::new("Failed to delete KMS key", $_.Exception)
+    }
+  }
+
+  [Task[string]] RetrievePublicKeyAsync([RetrieveKmsPublicKeyOptions]$options) {
+    try {
+      $options.Validate()
+      $responseObject = $this._apiClient.GetAsync([KmsPublicKeyResponse], "/api/v1/kms/keys/$($options.KeyId)/public-key", @{}).GetAwaiter().GetResult()
+      $response = [KmsPublicKeyResponse]$responseObject
+      return [Task]::FromResult($response.PublicKey)
+    }
+    catch {
+      throw [InfisicalException]::new("Failed to retrieve KMS public key", $_.Exception)
+    }
+  }
+
+  [Task[string]] ExportPrivateKeyAsync([ExportKmsPrivateKeyOptions]$options) {
+    try {
+      $options.Validate()
+      $responseObject = $this._apiClient.GetAsync([KmsPrivateKeyResponse], "/api/v1/kms/keys/$($options.KeyId)/private-key", @{}).GetAwaiter().GetResult()
+      $response = [KmsPrivateKeyResponse]$responseObject
+      return [Task]::FromResult($response.PrivateKey)
+    }
+    catch {
+      throw [InfisicalException]::new("Failed to export KMS private key", $_.Exception)
+    }
+  }
+
+  [Task[object[]]] BulkExportPrivateKeysAsync([BulkExportPrivateKeysOptions]$options) {
+    try {
+      $options.Validate()
+      $responseObject = $this._apiClient.PostAsync([KmsBulkExportPrivateKeysResponse], "/api/v1/kms/keys/bulk-export-private-keys", $options, $true).GetAwaiter().GetResult()
+      $response = [KmsBulkExportPrivateKeysResponse]$responseObject
+      return [Task]::FromResult($response.Keys)
+    }
+    catch {
+      throw [InfisicalException]::new("Failed to bulk export KMS private keys", $_.Exception)
+    }
+  }
+
+  [Task[string]] EncryptDataAsync([EncryptKmsDataOptions]$options) {
+    try {
+      $options.Validate()
+      $responseObject = $this._apiClient.PostAsync([KmsEncryptResponse], "/api/v1/kms/keys/$($options.KeyId)/encrypt", $options, $true).GetAwaiter().GetResult()
+      $response = [KmsEncryptResponse]$responseObject
+      return [Task]::FromResult($response.Ciphertext)
+    }
+    catch {
+      throw [InfisicalException]::new("Failed to encrypt KMS data", $_.Exception)
+    }
+  }
+
+  [Task[string]] DecryptDataAsync([DecryptKmsDataOptions]$options) {
+    try {
+      $options.Validate()
+      $responseObject = $this._apiClient.PostAsync([KmsDecryptResponse], "/api/v1/kms/keys/$($options.KeyId)/decrypt", $options, $true).GetAwaiter().GetResult()
+      $response = [KmsDecryptResponse]$responseObject
+      return [Task]::FromResult($response.Plaintext)
+    }
+    catch {
+      throw [InfisicalException]::new("Failed to decrypt KMS data", $_.Exception)
+    }
+  }
+
+  [Task[string]] SignDataAsync([SignKmsDataOptions]$options) {
+    try {
+      $options.Validate()
+      $responseObject = $this._apiClient.PostAsync([KmsSignResponse], "/api/v1/kms/keys/$($options.KeyId)/sign", $options, $true).GetAwaiter().GetResult()
+      $response = [KmsSignResponse]$responseObject
+      return [Task]::FromResult($response.Signature)
+    }
+    catch {
+      throw [InfisicalException]::new("Failed to sign KMS data", $_.Exception)
+    }
+  }
+
+  [Task[bool]] VerifySignatureAsync([VerifyKmsSignatureOptions]$options) {
+    try {
+      $options.Validate()
+      $responseObject = $this._apiClient.PostAsync([KmsVerifyResponse], "/api/v1/kms/keys/$($options.KeyId)/verify", $options, $true).GetAwaiter().GetResult()
+      $response = [KmsVerifyResponse]$responseObject
+      return [Task]::FromResult($response.IsValid)
+    }
+    catch {
+      throw [InfisicalException]::new("Failed to verify KMS signature", $_.Exception)
+    }
+  }
+
+  [Task[string[]]] ListSigningAlgorithmsAsync([ListKmsSigningAlgorithmsOptions]$options) {
+    try {
+      $options.Validate()
+      $responseObject = $this._apiClient.GetAsync([KmsSigningAlgorithmsResponse], "/api/v1/kms/keys/$($options.KeyId)/signing-algorithms", @{}).GetAwaiter().GetResult()
+      $response = [KmsSigningAlgorithmsResponse]$responseObject
+      return [Task]::FromResult($response.SigningAlgorithms)
+    }
+    catch {
+      throw [InfisicalException]::new("Failed to list KMS signing algorithms", $_.Exception)
+    }
+  }
+}
