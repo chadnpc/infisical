@@ -41,20 +41,27 @@ Describe "Infisical Access Control tests " {
     Write-Host "Done sleeping"
   }
 
-  It "Adding Additional Privileges : Can Grant specific, scoped privileges to users and machine identities on top of their predefined roles." {
-    $addOptions = [AddIdentityProjectAdditionalPrivilegeOptions]::new()
-    $addOptions.IdentityId = $clientId
-    $addOptions.ProjectId = $projectId
-    $addOptions.Slug = "read-secrets-prod-$([guid]::NewGuid())"
+  $machineIdentityId = $env:INFISICAL_MACHINE_IDENTITY_ID
+  if (![string]::IsNullOrEmpty($machineIdentityId)) {
+    It "Adding Additional Privileges : Can Grant specific, scoped privileges to users and machine identities on top of their predefined roles." {
+      $addOptions = [AddIdentityProjectAdditionalPrivilegeOptions]::new()
+      $addOptions.IdentityId = $machineIdentityId
+      $addOptions.ProjectId = $projectId
+      $addOptions.Slug = "read-secrets-prod-$([guid]::NewGuid())"
 
-    $condEnv = [IdentityProjectAdditionalPrivilegePermissionConditionEnvironment]::new("production")
-    $cond = [IdentityProjectAdditionalPrivilegePermissionCondition]::new($condEnv)
-    $perm = [IdentityProjectAdditionalPrivilegePermission]::new("secrets", @("read", "readValue"), $cond)
+      $condEnv = [IdentityProjectAdditionalPrivilegePermissionConditionEnvironment]::new("production")
+      $cond = [IdentityProjectAdditionalPrivilegePermissionCondition]::new($condEnv)
+      $perm = [IdentityProjectAdditionalPrivilegePermission]::new("secrets", @("describeSecret", "readValue"), $cond)
 
-    $addOptions.Permissions = @($perm)
+      $addOptions.Permissions = @($perm)
 
-    $privilege = $client.Identities().AddProjectAdditionalPrivilegeAsync($addOptions).GetAwaiter().GetResult()
-    $privilege | Should Not BeNullOrEmpty
+      $privilege = $client.Identities().AddProjectAdditionalPrivilegeAsync($addOptions).GetAwaiter().GetResult()
+      $privilege | Should Not BeNullOrEmpty
+    }
+  } else {
+    It "Adding Additional Privileges : Can Grant specific, scoped privileges to users and machine identities on top of their predefined roles." {
+      Write-Host "Skipping: INFISICAL_MACHINE_IDENTITY_ID not set in .env"
+    }
   }
 
   It "Creates a new secret" {
