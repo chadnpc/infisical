@@ -5,24 +5,6 @@ using module ..\infisical.psm1
 # Load environment variables from the root .env file
 Read-Env ([IO.Path]::Combine(($PSScriptRoot | Split-Path), ".env")) | Set-Env
 
-Describe "Infisical Login tests " {
-  $settings = [InfisicalSdkSettingsBuilder]::new().WithHostUri("https://app.infisical.com").Build()
-  $client = [InfisicalClient]::new($settings)
-  It "Fails to login when we use invalid credentials" {
-    $errorCaught = $false
-    try {
-      $client.Auth().UniversalAuth().LoginAsync("fake-id", ("fake-secret" | xconvert ToSecurestring)).GetAwaiter().GetResult() | Out-Null
-    } catch {
-      $errorCaught = $true
-    }
-    $errorCaught | Should Be $true
-  }
-  It "Successfuly login when we use correct credentials" {
-    $credential = $client.Auth().UniversalAuth().LoginAsync($env:INFISICAL_MACHINE_IDENTITY_CLIENT_ID, ($env:INFISICAL_MACHINE_IDENTITY_CLIENT_SECRET | xconvert ToSecurestring)).GetAwaiter().GetResult()
-    $credential.AccessToken | Should Not BeNullOrEmpty
-  }
-}
-
 Describe "Infisical Access Control tests " {
   $clientId = $env:INFISICAL_MACHINE_IDENTITY_CLIENT_ID
   $clientSecret = $env:INFISICAL_MACHINE_IDENTITY_CLIENT_SECRET
@@ -33,12 +15,19 @@ Describe "Infisical Access Control tests " {
   $client = [InfisicalClient]::new($settings)
   $newSecretName = "INFISICAL-ACCESS-TEST-$([guid]::NewGuid())"
 
-  It "Authenticates with Universal Auth" {
+  It "Authentication via Universal Auth - Successful login with correct credentials" {
     $credential = $client.Auth().UniversalAuth().LoginAsync($clientId, ($clientSecret | xconvert ToSecurestring)).GetAwaiter().GetResult()
     $credential.AccessToken | Should Not BeNullOrEmpty
-    Write-Host "Sleeping for 5 seconds"
-    Start-Sleep -Seconds 5
-    Write-Host "Done sleeping"
+  }
+  It "Authentication via Universal Auth - Failure login with invalid credentials" {
+    $errorCaught = $false
+    try {
+      $client.Auth().UniversalAuth().LoginAsync("fake-id", ("fake-secret" | xconvert ToSecurestring)).GetAwaiter().GetResult() | Out-Null
+    }
+    catch {
+      $errorCaught = $true
+    }
+    $errorCaught | Should Be $true
   }
 
   $machineIdentityId = $env:INFISICAL_MACHINE_IDENTITY_ID
@@ -58,7 +47,8 @@ Describe "Infisical Access Control tests " {
       $privilege = $client.Identities().AddProjectAdditionalPrivilegeAsync($addOptions).GetAwaiter().GetResult()
       $privilege | Should Not BeNullOrEmpty
     }
-  } else {
+  }
+  else {
     It "Adding Additional Privileges : Can Grant specific, scoped privileges to users and machine identities on top of their predefined roles." {
       Write-Host "Skipping: INFISICAL_MACHINE_IDENTITY_ID not set in .env"
     }
