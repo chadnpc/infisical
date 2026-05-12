@@ -30,7 +30,7 @@ class InfisicalClient {
   hidden [PkiClient] $_pkiClient
 
   InfisicalClient([InfisicalSdkSettings]$settings) {
-    $this._apiClient = [ApiClient]::new($settings.HostUri, $null)
+    $this._apiClient = [ApiClient]::new($settings.HostUri)
     $this._secretsClient = [SecretsClient]::new($this._apiClient)
     $this._authClient = [AuthClient]::new($this._apiClient, { param($accessToken) $this._apiClient.SetAccessToken($accessToken) })
     $this._pkiClient = [PkiClient]::new($this._apiClient)
@@ -69,11 +69,9 @@ class Infisical {
 # (Get-ChildItem *.psm1 -Recurse -File | ForEach-Object { [IO.File]::ReadAllLines((Get-Item $_.FullName)).Where({ $_.StartsWith("class") -or $_.StartsWith("enum ") }).ForEach({ $_.Replace("class ", '[').Replace("enum ", '[') }).ForEach({ ($_ -like "* : *") ? $_.split(" : ")[0] + ']' : $_.Replace(' {', ']') }) }) -join ', '
 
 $typestoExport = @(
-  [ApiClient], [QueryBuilder], [UniversalAuth], [LdapAuth], [AuthClient], [Subscribers], [PkiClient], [SecretsClient], [SecretType], [InfisicalAuthMethod], [InfisicalException],
-  [MachineIdentityCredential], [UniversalAuthLoginRequest], [LdapAuthLoginRequest], [ListSecretsOptions], [GetSecretOptions], [SecretMetadata], [CreateSecretOptions],
-  [UpdateSecretOptions], [DeleteSecretOptions], [IssueCertificateOptions], [SubscriberIssuedCertificate], [RetrieveLatestCertificateBundleOptions], [CertificateBundle],
-  [InfisicalSecret], [SecretImport], [ListSecretsResponse], [GetSecretResponse], [CreateSecretResponse], [UpdateSecretResponse], [DeleteSecretResponse], [InfisicalUniversalAuth],
-  [InfisicalTokenAuth], [InfisicalAuth], [InfisicalSdkSettings], [InfisicalSdkSettingsBuilder], [ObjectToDictionaryConverter], [SecretsUtil], [InfisicalClient], [Infisical]
+  [ApiClient], [QueryBuilder], [UniversalAuth], [LdapAuth], [AuthClient], [Subscribers], [PkiClient], [SecretsClient], [SecretType], [InfisicalAuthMethod], [InfisicalException], [MachineIdentityCredential], [UniversalAuthLoginRequest], [LdapAuthLoginRequest], [ListSecretsOptions], [GetSecretOptions], [SecretMetadata],
+  [CreateSecretOptions], [UpdateSecretOptions], [DeleteSecretOptions], [IssueCertificateOptions], [SubscriberIssuedCertificate], [RetrieveLatestCertificateBundleOptions], [CertificateBundle], [InfisicalSecret], [SecretImport], [ListSecretsResponse], [GetSecretResponse], [CreateSecretResponse], [UpdateSecretResponse],
+  [DeleteSecretResponse], [InfisicalUniversalAuth], [InfisicalTokenAuth], [InfisicalAuth], [InfisicalSdkSettings], [InfisicalSdkSettingsBuilder], [ObjectToDictionaryConverter], [SecretsUtil], [InfisicalClient], [Infisical]
 )
 $TypeAcceleratorsClass = [PsObject].Assembly.GetType('System.Management.Automation.TypeAccelerators')
 # Add type accelerators for every exportable type.
