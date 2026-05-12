@@ -89,7 +89,7 @@ class ApiClient : IDisposable {
   hidden [JsonSerializerOptions] GetJsonOptionsNullOmit() {
     $options = [JsonSerializerOptions]::new()
     $options.PropertyNameCaseInsensitive = $true
-    $options.DefaultIgnoreCondition = [JsonIgnoreCondition]::WhenWritingNull
+    $options.DefaultIgnoreCondition = [JsonIgnoreCondition]::WhenWritingDefault
     return $options
   }
 
