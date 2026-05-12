@@ -134,6 +134,14 @@ Describe "Infisical Access Control tests " {
 
 # https://infisical.com/docs/api-reference/endpoints/kms/
 Describe "Infisical KMS Operations" {
+  $clientId = $env:INFISICAL_MACHINE_IDENTITY_CLIENT_ID
+  $clientSecret = $env:INFISICAL_MACHINE_IDENTITY_CLIENT_SECRET
+  $projectId = $env:INFISICAL_PROJECT_ID
+  $hostUri = if ([string]::IsNullOrEmpty($env:INFISICAL_HOST_URI)) { "https://app.infisical.com" } else { $env:INFISICAL_HOST_URI }
+
+  $settings = [InfisicalSdkSettingsBuilder]::new().WithHostUri($hostUri).Build()
+  $client = [InfisicalClient]::new($settings)
+  $client.Auth().UniversalAuth().LoginAsync($clientId, ($clientSecret | xconvert ToSecurestring)).GetAwaiter().GetResult() | Out-Null
 
   # Setup test vars
   $script:kmsKeyName = "test-key-$([guid]::NewGuid().ToString().Substring(0,8))"
@@ -160,6 +168,7 @@ Describe "Infisical KMS Operations" {
 
     It "List Keys [GET]" {
       $listOpts = [ListKmsKeysOptions]::new()
+      $listOpts.ProjectId = $projectId
       $listOpts.Limit = 100
       $listOpts.OrderBy = "name"
       $listOpts.OrderDirection = "asc"
@@ -282,7 +291,7 @@ Describe "Infisical KMS Operations" {
     $script:testSignature = $null
 
     It "Sign Data [POST]" {
-      if ($null -eq $script:signKeyId) { Set-ItResult -Inconclusive "Signing key unavailable" }
+      if ($null -eq $script:signKeyId) { Set-TestInconclusive -Message "Signing key unavailable" ; return }
 
       $signOpts = [SignKmsDataOptions]::new()
       $signOpts.KeyId = $script:signKeyId
@@ -297,7 +306,7 @@ Describe "Infisical KMS Operations" {
     }
 
     It "Verify Signature [POST]" {
-      if ($null -eq $script:signKeyId) { Set-ItResult -Inconclusive "Signing key unavailable" }
+      if ($null -eq $script:signKeyId) { Set-TestInconclusive -Message "Signing key unavailable" ; return }
 
       $verifyOpts = [VerifyKmsSignatureOptions]::new()
       $verifyOpts.KeyId = $script:signKeyId
@@ -313,7 +322,7 @@ Describe "Infisical KMS Operations" {
     }
 
     It "List Signing Algorithms [GET]" {
-      if ($null -eq $script:signKeyId) { Set-ItResult -Inconclusive "Signing key unavailable" }
+      if ($null -eq $script:signKeyId) { Set-TestInconclusive -Message "Signing key unavailable" ; return }
 
       $listOpts = [ListKmsSigningAlgorithmsOptions]::new()
       $listOpts.KeyId = $script:signKeyId

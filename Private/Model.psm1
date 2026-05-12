@@ -407,6 +407,8 @@ class KmsKey {
 }
 
 class ListKmsKeysOptions {
+  [JsonPropertyName("projectId")]
+  [string] $ProjectId
   [JsonPropertyName("limit")]
   [int] $Limit = 20
   [JsonPropertyName("offset")]
