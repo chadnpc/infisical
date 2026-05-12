@@ -29,9 +29,9 @@ Describe "Infisical Access Control tests " {
     $errorCaught | Should Be $true
   }
 
-  $machineIdentityId = $env:INFISICAL_MACHINE_IDENTITY_ID
-  if (![string]::IsNullOrEmpty($machineIdentityId)) {
-    It "Adding Additional Privileges : Can Grant specific, scoped privileges to users and machine identities on top of their predefined roles." {
+  It "Adding Additional Privileges : Can Grant specific, scoped privileges to users and machine identities on top of their predefined roles." {
+    $machineIdentityId = $env:INFISICAL_MACHINE_IDENTITY_ID
+    if (![string]::IsNullOrEmpty($machineIdentityId)) {
       $addOptions = [AddIdentityProjectAdditionalPrivilegeOptions]::new()
       $addOptions.IdentityId = $machineIdentityId
       $addOptions.ProjectId = $projectId
@@ -45,9 +45,7 @@ Describe "Infisical Access Control tests " {
 
       $privilege = $client.Identities().AddProjectAdditionalPrivilegeAsync($addOptions).GetAwaiter().GetResult()
       $privilege | Should Not BeNullOrEmpty
-    }
-  } else {
-    It "Adding Additional Privileges : Can Grant specific, scoped privileges to users and machine identities on top of their predefined roles." {
+    } else {
       Write-Host "Skipping: INFISICAL_MACHINE_IDENTITY_ID not set in .env"
     }
   }
@@ -219,7 +217,9 @@ Describe "Infisical KMS Operations" {
       try {
         $pubKey = $client.Kms().RetrievePublicKeyAsync($pubOpts).GetAwaiter().GetResult()
         # Not asserting as aes-256-gcm does not have a public key, we just check call executes
-      } catch { }
+      } catch {
+        $null
+      }
     }
 
     It "Export Private Key [GET]" {
@@ -228,7 +228,9 @@ Describe "Infisical KMS Operations" {
 
       try {
         $privKey = $client.Kms().ExportPrivateKeyAsync($privOpts).GetAwaiter().GetResult()
-      } catch { }
+      } catch {
+        $null
+      }
     }
 
     It "Bulk Export Private Keys [POST]" {
@@ -237,7 +239,9 @@ Describe "Infisical KMS Operations" {
 
       try {
         $bulkKeys = $client.Kms().BulkExportPrivateKeysAsync($bulkOpts).GetAwaiter().GetResult()
-      } catch { }
+      } catch {
+        $null
+      }
     }
   }
 
@@ -284,6 +288,7 @@ Describe "Infisical KMS Operations" {
         $script:signKeyId = if ($createdKey -is [System.Text.Json.JsonElement]) { $createdKey.GetProperty("id").GetString() } else { $createdKey.id }
       } catch {
         # Gracefully ignore if asymmetric generation fails
+        $null
       }
     }
 
