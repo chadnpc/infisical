@@ -70,9 +70,9 @@ class AddIdentityProjectAdditionalPrivilegeOptions {
   AddIdentityProjectAdditionalPrivilegeOptions() {}
 
   [void] Validate() {
-    if ([string]::IsNullOrEmpty($this.IdentityId)) { throw [InfisicalException]::new("IdentityId is required") }
-    if ([string]::IsNullOrEmpty($this.ProjectId)) { throw [InfisicalException]::new("ProjectId is required") }
-    if ([string]::IsNullOrEmpty($this.Slug)) { throw [InfisicalException]::new("Slug is required") }
+    if ([string]::IsNullOrWhiteSpace($this.IdentityId)) { throw [InfisicalException]::new("IdentityId is required") }
+    if ([string]::IsNullOrWhiteSpace($this.ProjectId)) { throw [InfisicalException]::new("ProjectId is required") }
+    if ([string]::IsNullOrWhiteSpace($this.Slug)) { throw [InfisicalException]::new("Slug is required") }
     if ($null -eq $this.Permissions) { throw [InfisicalException]::new("Permissions is required") }
   }
 }
