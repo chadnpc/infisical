@@ -8,12 +8,12 @@
 - Functions ...
 - Optimizations
 '
-  HelpMessage   = @"
-      Infisical CLI Engine
-      ====================
+  HelpMessage   = @'
+      Infisical Powershell module
+      ===========================
 
-    Infisical is the open-source secret management platform. This PowerShell 
-    module provides a CLI engine and a programmatic SDK to manage secrets, 
+    Infisical is the open-source secret management platform. This PowerShell
+    module provides a CLI engine and a programmatic SDK to manage secrets,
     certificates, and KMS keys.
 
     Quick Start (CLI):
@@ -46,15 +46,15 @@
     - GetProjectConfig()     : Read local .infisical.json
     - SetProjectConfig($cfg) : Update local .infisical.json
 
-    SDK Entry Points:
+    Entry Points:
     - [Infisical]::Auth()
     - [Infisical]::Secrets()
     - [Infisical]::Pki()
     - [Infisical]::Identities()
     - [Infisical]::Kms()
 
-    For more information, visit: https://infisical.com/docs/cli
-"@
+    For more information, visit: https://github.com/chadnpc/infisical/tree/main/docs#readme
+'@
   BannerAscii   = @"
 ⠀⠀⠀⠀⠀⠀⠀⣠⣴⣶⣶⣦⣤⡀⠀⠀⢀⣤⣶⣶⣶⣦⣄⠀⠀⠀⠀⠀⠀⠀
 ⠀⠀⠀⠀⠀⢀⣾⣿⠟⠋⠉⠛⢿⣿⣦⣴⣿⡿⠛⠉⠙⠻⣿⣷⡀⠀⠀⠀⠀⠀
