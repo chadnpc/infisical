@@ -1,7 +1,7 @@
 using namespace System.Management.Automation
 function Invoke-InfisicalCli {
   #.DESCRIPTION
-  #  one cmdlet to use the ahref api in the terminal
+  #  One cmdlet to use the module's cli engine
   # .NOTES
   #  If you want more control you can directly use the [Infisical] class :)
   # .OUTPUTS
