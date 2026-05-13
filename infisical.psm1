@@ -111,8 +111,8 @@ class Infisical {
         "upgrade" { [Infisical]::UpdateModule(); break }
         "events" {
           $params = ConvertTo-Params $subArgs -schema @{
-            id    = [string], $null
-            limit = [int], 20
+            id     = [string], $null
+            limit  = [int], 20
             output = [string], 'table'
           }
           Write-Host ([Infisical]::GetEvent($params.id.Value, $params.limit.Value, $params.output.Value))
@@ -128,20 +128,20 @@ class Infisical {
     }
   }
 
-  static [void] RunLogin([string[]]$args) {
-    $params = ConvertTo-Params $args -schema @{
-      method = [string], 'user'
-      domain = [string], 'https://app.infisical.com'
-      'client-id' = [string], $env:INFISICAL_UNIVERSAL_AUTH_CLIENT_ID
-      'client-secret' = [string], $env:INFISICAL_UNIVERSAL_AUTH_CLIENT_SECRET
-      email = [string], $env:INFISICAL_EMAIL
-      password = [string], $env:INFISICAL_PASSWORD
-      'organization-id' = [string], $env:INFISICAL_ORGANIZATION_ID
-      interactive = [switch], $false
-      plain = [switch], $false
-      silent = [switch], $false
+  static [void] RunLogin([string[]]$InputArgs) {
+    $params = ConvertTo-Params $InputArgs -schema @{
+      method                = [string], 'user'
+      domain                = [string], 'https://app.infisical.com'
+      'client-id'           = [string], $env:INFISICAL_UNIVERSAL_AUTH_CLIENT_ID
+      'client-secret'       = [string], $env:INFISICAL_UNIVERSAL_AUTH_CLIENT_SECRET
+      email                 = [string], $env:INFISICAL_EMAIL
+      password              = [string], $env:INFISICAL_PASSWORD
+      'organization-id'     = [string], $env:INFISICAL_ORGANIZATION_ID
+      interactive           = [switch], $false
+      plain                 = [switch], $false
+      silent                = [switch], $false
       'machine-identity-id' = [string], $env:INFISICAL_MACHINE_IDENTITY_ID
-      'organization-slug' = [string], $env:INFISICAL_AUTH_ORGANIZATION_SLUG
+      'organization-slug'   = [string], $env:INFISICAL_AUTH_ORGANIZATION_SLUG
     }
 
     $domain = if ($params.domain.Value) { $params.domain.Value } else { "https://app.infisical.com" }
@@ -150,44 +150,44 @@ class Infisical {
     $client = [Infisical]::GetClient($domain, $null)
 
     if ($params.method.Value -eq 'universal-auth') {
-       $clientId = $params.'client-id'.Value
-       $clientSecretStr = $params.'client-secret'.Value
-       if ([string]::IsNullOrEmpty($clientId) -or [string]::IsNullOrEmpty($clientSecretStr)) {
-         throw "client-id and client-secret are required for universal-auth."
-       }
-       $clientSecret = $clientSecretStr | xconvert ToSecurestring
-       $res = $client.Auth().UniversalAuth().LoginAsync($clientId, $clientSecret).GetAwaiter().GetResult()
-       
-       if ($params.plain.Value) {
-           if (!$params.silent.Value) { Write-Host $res.AccessToken } else { [Console]::WriteLine($res.AccessToken) }
-       } else {
-           Write-Host "Successfully logged in via Universal Auth." -ForegroundColor Green
-           Write-Host "Token: $($res.AccessToken)"
-       }
+      $clientId = $params.'client-id'.Value
+      $clientSecretStr = $params.'client-secret'.Value
+      if ([string]::IsNullOrEmpty($clientId) -or [string]::IsNullOrEmpty($clientSecretStr)) {
+        throw "client-id and client-secret are required for universal-auth."
+      }
+      $clientSecret = $clientSecretStr | xconvert ToSecurestring
+      $res = $client.Auth().UniversalAuth().LoginAsync($clientId, $clientSecret).GetAwaiter().GetResult()
+
+      if ($params.plain.Value) {
+        if (!$params.silent.Value) { Write-Host $res.AccessToken } else { [Console]::WriteLine($res.AccessToken) }
+      } else {
+        Write-Host "Successfully logged in via Universal Auth." -ForegroundColor Green
+        Write-Host "Token: $($res.AccessToken)"
+      }
     } else {
-       Write-Warning "Method $($params.method.Value) is currently not fully implemented in this CLI engine wrapper. Only universal-auth is supported via CLI args so far."
+      Write-Warning "Method $($params.method.Value) is currently not fully implemented in this CLI engine wrapper. Only universal-auth is supported via CLI args so far."
     }
   }
 
-  static [void] RunSecrets([string[]]$args) {
-    if ($args.Count -eq 0 -or $args[0] -match '^-') {
+  static [void] RunSecrets([string[]]$InputArgs) {
+    if ($InputArgs.Count -eq 0 -or $InputArgs[0] -match '^-') {
       # No subcommand, this means 'infisical secrets'
       $subCommand = "list"
-      $remArgs = $args
+      $remArgs = $InputArgs
     } else {
-      $subCommand = $args[0]
-      $remArgs = if ($args.Count -gt 1) { $args[1..($args.Count - 1)] } else { @() }
+      $subCommand = $InputArgs[0]
+      $remArgs = if ($InputArgs.Count -gt 1) { $InputArgs[1..($InputArgs.Count - 1)] } else { @() }
     }
 
     $params = ConvertTo-Params $remArgs -schema @{
       projectId = [string], $null
-      env = [string], 'dev'
-      path = [string], '/'
-      plain = [switch], $false
-      silent = [switch], $false
-      expand = [switch], $true
-      domain = [string], 'https://app.infisical.com'
-      token = [string], $null
+      env       = [string], 'dev'
+      path      = [string], '/'
+      plain     = [switch], $false
+      silent    = [switch], $false
+      expand    = [switch], $true
+      domain    = [string], 'https://app.infisical.com'
+      token     = [string], $null
     }
 
     $domain = if ($params.domain.Value) { $params.domain.Value } else { "https://app.infisical.com" }
@@ -196,101 +196,101 @@ class Infisical {
 
     switch ($subCommand) {
       "get" {
-         $secretNames = @()
-         foreach ($arg in $remArgs) {
-             if ($arg -notmatch '^-') { $secretNames += $arg } else { break }
-         }
-         foreach ($s in $secretNames) {
-             $opts = [GetSecretOptions]::new()
-             $opts.ProjectId = $params.projectId.Value
-             $opts.EnvironmentSlug = $params.env.Value
-             $opts.SecretPath = $params.path.Value
-             $opts.SecretName = $s
-             $opts.ExpandSecretReferences = $params.expand.Value
-             $secret = $client.Secrets().GetAsync($opts).GetAwaiter().GetResult()
-             if ($params.plain.Value) {
-                 [Console]::WriteLine($secret.SecretValue)
-             } else {
-                 Write-Host "$s`: $($secret.SecretValue)"
-             }
-         }
-      }
-      "set" {
-          # Partially implemented set
-          $opts = [CreateSecretOptions]::new()
+        $secretNames = @()
+        foreach ($arg in $remArgs) {
+          if ($arg -notmatch '^-') { $secretNames += $arg } else { break }
+        }
+        foreach ($s in $secretNames) {
+          $opts = [GetSecretOptions]::new()
           $opts.ProjectId = $params.projectId.Value
           $opts.EnvironmentSlug = $params.env.Value
           $opts.SecretPath = $params.path.Value
+          $opts.SecretName = $s
+          $opts.ExpandSecretReferences = $params.expand.Value
+          $secret = $client.Secrets().GetAsync($opts).GetAwaiter().GetResult()
+          if ($params.plain.Value) {
+            [Console]::WriteLine($secret.SecretValue)
+          } else {
+            Write-Host "$s`: $($secret.SecretValue)"
+          }
+        }
+      }
+      "set" {
+        # Partially implemented set
+        $opts = [CreateSecretOptions]::new()
+        $opts.ProjectId = $params.projectId.Value
+        $opts.EnvironmentSlug = $params.env.Value
+        $opts.SecretPath = $params.path.Value
 
-          $kvPairs = @()
-          foreach ($arg in $remArgs) {
-             if ($arg -notmatch '^-' -and $arg -match '=') { $kvPairs += $arg } else { break }
+        $kvPairs = @()
+        foreach ($arg in $remArgs) {
+          if ($arg -notmatch '^-' -and $arg -match '=') { $kvPairs += $arg } else { break }
+        }
+        foreach ($kv in $kvPairs) {
+          $split = $kv.Split('=', 2)
+          $opts.SecretName = $split[0]
+          $opts.SecretValue = $split[1]
+          # Update if exists, else create
+          try {
+            $client.Secrets().CreateAsync($opts).GetAwaiter().GetResult() | Out-Null
+            if (!$params.silent.Value) { Write-Host "Set secret $($opts.SecretName)" -f Green }
+          } catch {
+            $upd = [UpdateSecretOptions]::new()
+            $upd.ProjectId = $opts.ProjectId
+            $upd.EnvironmentSlug = $opts.EnvironmentSlug
+            $upd.SecretPath = $opts.SecretPath
+            $upd.SecretName = $opts.SecretName
+            $upd.NewSecretValue = $opts.SecretValue
+            $client.Secrets().UpdateAsync($upd).GetAwaiter().GetResult() | Out-Null
+            if (!$params.silent.Value) { Write-Host "Updated secret $($opts.SecretName)" -f Green }
           }
-          foreach ($kv in $kvPairs) {
-             $split = $kv.Split('=', 2)
-             $opts.SecretName = $split[0]
-             $opts.SecretValue = $split[1]
-             # Update if exists, else create
-             try {
-                $client.Secrets().CreateAsync($opts).GetAwaiter().GetResult() | Out-Null
-                if (!$params.silent.Value) { Write-Host "Set secret $($opts.SecretName)" -f Green }
-             } catch {
-                $upd = [UpdateSecretOptions]::new()
-                $upd.ProjectId = $opts.ProjectId
-                $upd.EnvironmentSlug = $opts.EnvironmentSlug
-                $upd.SecretPath = $opts.SecretPath
-                $upd.SecretName = $opts.SecretName
-                $upd.NewSecretValue = $opts.SecretValue
-                $client.Secrets().UpdateAsync($upd).GetAwaiter().GetResult() | Out-Null
-                if (!$params.silent.Value) { Write-Host "Updated secret $($opts.SecretName)" -f Green }
-             }
-          }
+        }
       }
       "delete" {
-          $secretNames = @()
-          foreach ($arg in $remArgs) {
-             if ($arg -notmatch '^-') { $secretNames += $arg } else { break }
-          }
-          foreach ($s in $secretNames) {
-             $opts = [DeleteSecretOptions]::new()
-             $opts.ProjectId = $params.projectId.Value
-             $opts.EnvironmentSlug = $params.env.Value
-             $opts.SecretPath = $params.path.Value
-             $opts.SecretName = $s
-             $client.Secrets().DeleteAsync($opts).GetAwaiter().GetResult() | Out-Null
-             if (!$params.silent.Value) { Write-Host "Deleted secret $s" -f Green }
-          }
+        $secretNames = @()
+        foreach ($arg in $remArgs) {
+          if ($arg -notmatch '^-') { $secretNames += $arg } else { break }
+        }
+        foreach ($s in $secretNames) {
+          $opts = [DeleteSecretOptions]::new()
+          $opts.ProjectId = $params.projectId.Value
+          $opts.EnvironmentSlug = $params.env.Value
+          $opts.SecretPath = $params.path.Value
+          $opts.SecretName = $s
+          $client.Secrets().DeleteAsync($opts).GetAwaiter().GetResult() | Out-Null
+          if (!$params.silent.Value) { Write-Host "Deleted secret $s" -f Green }
+        }
       }
       "list" {
-         $opts = [ListSecretsOptions]::new()
-         $opts.ProjectId = $params.projectId.Value
-         $opts.EnvironmentSlug = $params.env.Value
-         $opts.SecretPath = $params.path.Value
-         $opts.ExpandSecretReferences = $params.expand.Value
-         $secrets = $client.Secrets().ListAsync($opts).GetAwaiter().GetResult()
-         
-         if ($params.plain.Value) {
-            foreach ($s in $secrets) { [Console]::WriteLine("$($s.SecretKey)=$($s.SecretValue)") }
-         } else {
-            $secrets | Format-Table SecretKey, SecretValue, SecretPath, Environment
-         }
+        $opts = [ListSecretsOptions]::new()
+        $opts.ProjectId = $params.projectId.Value
+        $opts.EnvironmentSlug = $params.env.Value
+        $opts.SecretPath = $params.path.Value
+        $opts.ExpandSecretReferences = $params.expand.Value
+        $secrets = $client.Secrets().ListAsync($opts).GetAwaiter().GetResult()
+
+        if ($params.plain.Value) {
+          foreach ($s in $secrets) { [Console]::WriteLine("$($s.SecretKey)=$($s.SecretValue)") }
+        } else {
+          $secrets | Format-Table SecretKey, SecretValue, SecretPath, Environment
+        }
       }
       default {
-         Write-Host "Unknown secrets subcommand: $subCommand"
+        Write-Host "Unknown secrets subcommand: $subCommand"
       }
     }
   }
 
-  static [void] RunExport([string[]]$args) {
-    $params = ConvertTo-Params $args -schema @{
-      format = [string], 'dotenv'
+  static [void] RunExport([string[]]$InputArgs) {
+    $params = ConvertTo-Params $InputArgs -schema @{
+      format        = [string], 'dotenv'
       'output-file' = [string], $null
-      env = [string], 'dev'
-      projectId = [string], $null
-      path = [string], '/'
-      domain = [string], 'https://app.infisical.com'
-      token = [string], $null
-      expand = [switch], $true
+      env           = [string], 'dev'
+      projectId     = [string], $null
+      path          = [string], '/'
+      domain        = [string], 'https://app.infisical.com'
+      token         = [string], $null
+      expand        = [switch], $true
     }
 
     $domain = if ($params.domain.Value) { $params.domain.Value } else { "https://app.infisical.com" }
@@ -306,59 +306,59 @@ class Infisical {
 
     $output = @()
     if ($params.format.Value -eq 'json') {
-       $hash = @{}
-       foreach ($s in $secrets) { $hash[$s.SecretKey] = $s.SecretValue }
-       $output = $hash | ConvertTo-Json -Depth 10
+      $hash = @{}
+      foreach ($s in $secrets) { $hash[$s.SecretKey] = $s.SecretValue }
+      $output = $hash | ConvertTo-Json -Depth 10
     } elseif ($params.format.Value -eq 'yaml') {
-       foreach ($s in $secrets) { $output += "$($s.SecretKey): `"$($s.SecretValue)`"" }
-       $output = $output -join "`n"
+      foreach ($s in $secrets) { $output += "$($s.SecretKey): `"$($s.SecretValue)`"" }
+      $output = $output -join "`n"
     } elseif ($params.format.Value -eq 'csv') {
-       $output += "Key,Value"
-       foreach ($s in $secrets) { $output += "$($s.SecretKey),$($s.SecretValue)" }
-       $output = $output -join "`n"
+      $output += "Key,Value"
+      foreach ($s in $secrets) { $output += "$($s.SecretKey),$($s.SecretValue)" }
+      $output = $output -join "`n"
     } elseif ($params.format.Value -eq 'dotenv-export') {
-       foreach ($s in $secrets) { $output += "export $($s.SecretKey)=`"$($s.SecretValue)`"" }
-       $output = $output -join "`n"
+      foreach ($s in $secrets) { $output += "export $($s.SecretKey)=`"$($s.SecretValue)`"" }
+      $output = $output -join "`n"
     } else {
-       # Default dotenv
-       foreach ($s in $secrets) { $output += "$($s.SecretKey)=`"$($s.SecretValue)`"" }
-       $output = $output -join "`n"
+      # Default dotenv
+      foreach ($s in $secrets) { $output += "$($s.SecretKey)=`"$($s.SecretValue)`"" }
+      $output = $output -join "`n"
     }
 
     if (![string]::IsNullOrEmpty($params.'output-file'.Value)) {
-       [System.IO.File]::WriteAllText($params.'output-file'.Value, $output)
-       Write-Host "Exported secrets to $($params.'output-file'.Value)" -f Green
+      [System.IO.File]::WriteAllText($params.'output-file'.Value, $output)
+      Write-Host "Exported secrets to $($params.'output-file'.Value)" -f Green
     } else {
-       [Console]::WriteLine($output)
+      [Console]::WriteLine($output)
     }
   }
 
-  static [void] RunRun([string[]]$args) {
-    $dashDashIndex = [Array]::IndexOf($args, "--")
+  static [void] RunRun([string[]]$InputArgs) {
+    $dashDashIndex = [Array]::IndexOf($InputArgs, "--")
     $infisicalArgs = @()
     $cmdArgs = @()
 
     if ($dashDashIndex -ge 0) {
-      if ($dashDashIndex -gt 0) { $infisicalArgs = $args[0..($dashDashIndex - 1)] }
-      if ($dashDashIndex -lt ($args.Count - 1)) { $cmdArgs = $args[($dashDashIndex + 1)..($args.Count - 1)] }
+      if ($dashDashIndex -gt 0) { $infisicalArgs = $InputArgs[0..($dashDashIndex - 1)] }
+      if ($dashDashIndex -lt ($InputArgs.Count - 1)) { $cmdArgs = $InputArgs[($dashDashIndex + 1)..($InputArgs.Count - 1)] }
     } else {
-      $infisicalArgs = $args
+      $infisicalArgs = $InputArgs
     }
 
     $params = ConvertTo-Params $infisicalArgs -schema @{
       projectId = [string], $null
-      env = [string], 'dev'
-      path = [string[]], @('/')
-      command = [string], $null
-      expand = [switch], $true
-      domain = [string], 'https://app.infisical.com'
-      token = [string], $null
-      watch = [switch], $false
+      env       = [string], 'dev'
+      path      = [string[]], @('/')
+      command   = [string], $null
+      expand    = [switch], $true
+      domain    = [string], 'https://app.infisical.com'
+      token     = [string], $null
+      watch     = [switch], $false
     }
 
     $domain = if ($params.domain.Value) { $params.domain.Value } else { "https://app.infisical.com" }
     if (![string]::IsNullOrEmpty($env:INFISICAL_API_URL)) { $domain = $env:INFISICAL_API_URL }
-    
+
     $projectId = $params.projectId.Value
     if ([string]::IsNullOrEmpty($projectId)) {
       $config = [Infisical]::GetProjectConfig()
@@ -373,7 +373,7 @@ class Infisical {
     }
 
     $client = [Infisical]::GetClient($domain, $params.token.Value)
-    
+
     $opts = [ListSecretsOptions]::new()
     $opts.ProjectId = $projectId
     $opts.EnvironmentSlug = $params.env.Value
@@ -381,9 +381,9 @@ class Infisical {
     $opts.SetSecretsAsEnvironmentVariables = $true
 
     $paths = if ($params.path.Value -is [string[]]) { $params.path.Value } else { @($params.path.Value) }
-    
+
     # Fetch secrets and set as env vars for each path
-    # Note: ListAsync only sets environment variables if they are not already set, 
+    # Note: ListAsync only sets environment variables if they are not already set,
     # ensuring that the first path provided takes precedence.
     foreach ($p in $paths) {
       $opts.SecretPath = $p
@@ -401,15 +401,19 @@ class Infisical {
       Write-Warning "Watch mode is not yet implemented in this PowerShell module."
     }
 
-    Invoke-Expression $finalCmd
+    try {
+      [scriptblock]::Create("$finalCmd").Invoke()
+    } catch {
+      Write-Error $_.Exception.Message
+    }
   }
 
-  static [void] RunScan([string[]]$args) {
+  static [void] RunScan([string[]]$InputArgs) {
     Write-Warning "Secret scanning is not yet implemented in this PowerShell module."
   }
 
-  static [void] RunInit([string[]]$args) {
-    $params = ConvertTo-Params $args -schema @{
+  static [void] RunInit([string[]]$InputArgs) {
+    $params = ConvertTo-Params $InputArgs -schema @{
       projectId = [string], $null
     }
 
@@ -431,7 +435,7 @@ class Infisical {
     Write-Host "Initialized project in .infisical.json" -ForegroundColor Green
   }
 
-  static [void] RunReset([string[]]$args) {
+  static [void] RunReset([string[]]$InputArgs) {
     $configFile = Join-Path (Get-Location) ".infisical.json"
     if (Test-Path $configFile) {
       Remove-Item $configFile
@@ -441,13 +445,13 @@ class Infisical {
     }
   }
 
-  static [void] RunToken([string[]]$args) {
-    if ($args.Count -eq 0) {
+  static [void] RunToken([string[]]$InputArgs) {
+    if ($InputArgs.Count -eq 0) {
       Write-Host "Usage: infisical token <renew> [options]"
       return
     }
 
-    $subCommand = $args[0]
+    $subCommand = $InputArgs[0]
     switch ($subCommand) {
       "renew" {
         Write-Warning "Token renewal is not yet implemented."
@@ -458,19 +462,19 @@ class Infisical {
     }
   }
 
-  static [void] RunUser([string[]]$args) {
-    if ($args.Count -eq 0) {
+  static [void] RunUser([string[]]$InputArgs) {
+    if ($InputArgs.Count -eq 0) {
       Write-Host "Usage: infisical user <get|switch|update> [options]"
       return
     }
 
-    $subCommand = $args[0]
-    $remArgs = if ($args.Count -gt 1) { $args[1..($args.Count - 1)] } else { @() }
+    $subCommand = $InputArgs[0]
+    $remArgs = if ($InputArgs.Count -gt 1) { $InputArgs[1..($InputArgs.Count - 1)] } else { @() }
 
     switch ($subCommand) {
       "get" {
         if ($remArgs.Count -gt 0 -and $remArgs[0] -eq "token") {
-          $params = ConvertTo-Params $remArgs[1..($remArgs.Count-1)] -schema @{
+          $params = ConvertTo-Params $remArgs[1..($remArgs.Count - 1)] -schema @{
             plain = [switch], $false
           }
           $token = $env:INFISICAL_TOKEN
@@ -491,7 +495,7 @@ class Infisical {
     }
   }
 
-  static [void] RunVault([string[]]$args) {
+  static [void] RunVault([string[]]$InputArgs) {
     Write-Warning "Vault management is not yet implemented."
   }
 
