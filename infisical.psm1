@@ -549,10 +549,10 @@ class Infisical {
   }
 
   static [void] WriteBanner() {
-    Write-Host ([PsModuleBase]::ReadModuledata("infisical")["BannerAscii"]) -f Green
+    Write-Host ([PsModuleBase]::ReadModuledata("infisical").BannerAscii) -f Green
   }
   static [string] GetHelp() {
-    return [PsModuleBase]::ReadModuledata("infisical")["HelpMessage"]
+    return [PsModuleBase]::ReadModuledata("Infisical").HelpMessage
   }
 }
 #endregion Classes
