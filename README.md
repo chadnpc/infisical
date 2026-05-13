@@ -5,16 +5,7 @@
   <a href="https://www.powershellgallery.com/packages/infisical"><b>infisical</b></a>
   <p>
     🔥 Blazingly fast PowerShell module to work with infisical.
-    </br></br></br>
-    <a href="https://github.com/chadnpc/infisical/actions/workflows/Build_on_windows.yaml">
-    <img src="https://github.com/chadnpc/infisical/actions/workflows/Build_on_windows.yaml/badge.svg" alt="Build on Windows"/>
-    </a>
-    <a href="https://github.com/chadnpc/infisical/actions/workflows/Build_on_Mac.yaml">
-    <img src="https://github.com/chadnpc/infisical/actions/workflows/Build_on_Mac.yaml/badge.svg" alt="Build on MacOS"/>
-    </a>
-    <a href="https://github.com/chadnpc/infisical/actions/workflows/Build_on_Linux.yaml">
-    <img src="https://github.com/chadnpc/infisical/actions/workflows/Build_on_Linux.yaml/badge.svg" alt="Build on Linux"/>
-    </a>
+    </br></br>
     <a href="https://www.powershellgallery.com/packages/infisical">
     <img src="https://img.shields.io/powershellgallery/dt/infisical.svg?style=flat&logo=powershell&color=blue" alt="PowerShell Gallery" title="PowerShell Gallery" />
     </a>
@@ -30,11 +21,11 @@ Install-Module infisical -Scope CurrentUser
 
 **🚀 Features**
 
-- **Access Control**
+- **Access Control.**
    Fine-grained, identity-aware permissions for users and machines
-- **Secret Delivery**
+- **Secret Delivery.**
    Access and manage secrets (Create, Read, Update, Delete)
-- **Public Key Infrastructure (PKI)**
+- **Public Key Infrastructure (PKI).**
 
 ## quick usage (*wip)
 
