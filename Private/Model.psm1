@@ -225,33 +225,22 @@ class CreateSecretOptions {
 }
 
 class UpdateSecretOptions {
-  [JsonPropertyName("secretName")]
+  # SecretName is the current key name (used in the URL path, NOT sent in body)
   [string] $SecretName = [string]::Empty
-  [JsonIgnore(Condition = "WhenWritingNull")]
-  [JsonPropertyName("newSecretName")]
+  # Optional: rename the secret. Leave $null to keep existing name.
+  # NOTE: Do NOT set to empty string - the API rejects empty string for this field.
   [string] $NewSecretName = $null
-  [JsonPropertyName("workspaceId")]
   [string] $ProjectId = $null
-  [JsonPropertyName("environment")]
   [string] $EnvironmentSlug = $null
-  [JsonPropertyName("type")]
   [System.Nullable[SecretType]] $Type = $null
-  [JsonPropertyName("secretPath")]
   [string] $SecretPath = "/"
-  [JsonPropertyName("skipMultilineEncoding")]
   [System.Nullable[bool]] $NewSkipMultilineEncoding = $null
-  [JsonIgnore(Condition = "WhenWritingNull")]
-  [JsonPropertyName("secretValue")]
+  # Optional: update the secret value. Leave $null to keep existing value.
   [string] $NewSecretValue = $null
-  [JsonIgnore(Condition = "WhenWritingNull")]
-  [JsonPropertyName("secretComment")]
+  # Optional: update the secret comment. Leave $null to keep existing comment.
   [string] $NewSecretComment = $null
-  [JsonPropertyName("secretMetadata")]
   [SecretMetadata[]] $NewMetadata = $null
-  [JsonIgnore(Condition = "WhenWritingNull")]
-  [JsonPropertyName("secretReminderNote")]
   [string] $NewSecretReminderNote = $null
-  [JsonPropertyName("secretReminderRepeatDays")]
   [System.Nullable[int]] $NewSecretReminderRepeatDays = $null
 
   [void] Validate() {
@@ -259,6 +248,25 @@ class UpdateSecretOptions {
     if ([string]::IsNullOrEmpty($this.SecretName)) { throw [InfisicalException]::new("SecretName is required") }
     if ([string]::IsNullOrEmpty($this.SecretPath)) { throw [InfisicalException]::new("SecretPath is required") }
     if ([string]::IsNullOrEmpty($this.EnvironmentSlug)) { throw [InfisicalException]::new("EnvironmentSlug is required") }
+  }
+
+  # Returns a hashtable with only the fields that should be sent to the API.
+  # Omits null/empty optional string fields to avoid API validation errors
+  # (e.g. the API rejects newSecretName="" with a 422 minimum-length error).
+  [System.Collections.Hashtable] ToSerializableHashtable() {
+    $body = [System.Collections.Hashtable]::new()
+    $body["workspaceId"] = $this.ProjectId
+    $body["environment"] = $this.EnvironmentSlug
+    $body["secretPath"] = $this.SecretPath
+    if ($null -ne $this.Type) { $body["type"] = $this.Type.ToString() }
+    if ($null -ne $this.NewSkipMultilineEncoding) { $body["skipMultilineEncoding"] = $this.NewSkipMultilineEncoding }
+    if ($null -ne $this.NewSecretReminderRepeatDays) { $body["secretReminderRepeatDays"] = $this.NewSecretReminderRepeatDays }
+    if (![string]::IsNullOrEmpty($this.NewSecretName)) { $body["newSecretName"] = $this.NewSecretName }
+    if (![string]::IsNullOrEmpty($this.NewSecretValue)) { $body["secretValue"] = $this.NewSecretValue }
+    if (![string]::IsNullOrEmpty($this.NewSecretComment)) { $body["secretComment"] = $this.NewSecretComment }
+    if (![string]::IsNullOrEmpty($this.NewSecretReminderNote)) { $body["secretReminderNote"] = $this.NewSecretReminderNote }
+    if ($null -ne $this.NewMetadata -and $this.NewMetadata.Length -gt 0) { $body["secretMetadata"] = $this.NewMetadata }
+    return $body
   }
 }
 
@@ -431,9 +439,12 @@ class GetKmsKeyByIdOptions {
 class GetKmsKeyByNameOptions {
   [JsonPropertyName("keyName")]
   [string] $KeyName
+  [JsonPropertyName("projectId")]
+  [string] $ProjectId
 
   [void] Validate() {
     if ([string]::IsNullOrWhiteSpace($this.KeyName)) { throw [InfisicalException]::new("KeyName is required") }
+    if ([string]::IsNullOrWhiteSpace($this.ProjectId)) { throw [InfisicalException]::new("ProjectId is required for GetKmsKeyByName") }
   }
 }
 
