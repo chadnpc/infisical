@@ -167,8 +167,8 @@ Describe "Integration tests: infisical" {
       $secrets = $script:client.Secrets().ListAsync($listOpts).GetAwaiter().GetResult()
       $keys = $secrets | Select-Object -ExpandProperty SecretKey
 
-      $keys | Should Contain $script:bulkA1
-      $keys | Should Contain $script:bulkA2
+      ($keys -contains $script:bulkA1) | Should Be $true
+      ($keys -contains $script:bulkA2) | Should Be $true
 
       # Cleanup
       foreach ($name in @($script:bulkA1, $script:bulkA2)) {
