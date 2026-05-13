@@ -423,9 +423,9 @@ class Infisical {
     Write-Warning "Secret scanning is not yet implemented in this PowerShell module."
   }
 
-  static [void] Init([string]$projectId) {
-    [Infisical]::Init(@("--projectId", $projectId))
-  }
+  # static [void] Init([string]$projectId) {
+  #   [Infisical]::Init(@("--projectId", $projectId))
+  # }
 
   static [void] Init([string[]]$InputArgs) {
     $params = ConvertTo-Params $InputArgs -schema @{
