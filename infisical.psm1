@@ -99,6 +99,13 @@ class Infisical {
         "login" { [Infisical]::RunLogin($subArgs); break }
         "secrets" { [Infisical]::RunSecrets($subArgs); break }
         "export" { [Infisical]::RunExport($subArgs); break }
+        "run" { [Infisical]::RunRun($subArgs); break }
+        "init" { [Infisical]::RunInit($subArgs); break }
+        "reset" { [Infisical]::RunReset($subArgs); break }
+        "token" { [Infisical]::RunToken($subArgs); break }
+        "user" { [Infisical]::RunUser($subArgs); break }
+        "vault" { [Infisical]::RunVault($subArgs); break }
+        "scan" { [Infisical]::RunScan($subArgs); break }
         "help" { [Infisical]::ShowHelp(); break }
         "version" { [Infisical]::ShowVersion(); break }
         "upgrade" { [Infisical]::UpdateModule(); break }
@@ -324,6 +331,181 @@ class Infisical {
     } else {
        [Console]::WriteLine($output)
     }
+  }
+
+  static [void] RunRun([string[]]$args) {
+    $dashDashIndex = [Array]::IndexOf($args, "--")
+    $infisicalArgs = @()
+    $cmdArgs = @()
+
+    if ($dashDashIndex -ge 0) {
+      if ($dashDashIndex -gt 0) { $infisicalArgs = $args[0..($dashDashIndex - 1)] }
+      if ($dashDashIndex -lt ($args.Count - 1)) { $cmdArgs = $args[($dashDashIndex + 1)..($args.Count - 1)] }
+    } else {
+      $infisicalArgs = $args
+    }
+
+    $params = ConvertTo-Params $infisicalArgs -schema @{
+      projectId = [string], $null
+      env = [string], 'dev'
+      path = [string[]], @('/')
+      command = [string], $null
+      expand = [switch], $true
+      domain = [string], 'https://app.infisical.com'
+      token = [string], $null
+      watch = [switch], $false
+    }
+
+    $domain = if ($params.domain.Value) { $params.domain.Value } else { "https://app.infisical.com" }
+    if (![string]::IsNullOrEmpty($env:INFISICAL_API_URL)) { $domain = $env:INFISICAL_API_URL }
+    
+    $projectId = $params.projectId.Value
+    if ([string]::IsNullOrEmpty($projectId)) {
+      $config = [Infisical]::GetProjectConfig()
+      if ($null -ne $config -and $null -ne $config.workspaceId) {
+        $projectId = $config.workspaceId
+      }
+    }
+
+    if ([string]::IsNullOrEmpty($projectId) -and [string]::IsNullOrEmpty($params.token.Value) -and [string]::IsNullOrEmpty($env:INFISICAL_TOKEN)) {
+      Write-Error "Project ID is required. Use --projectId or run 'infisical init' first."
+      return
+    }
+
+    $client = [Infisical]::GetClient($domain, $params.token.Value)
+    
+    $opts = [ListSecretsOptions]::new()
+    $opts.ProjectId = $projectId
+    $opts.EnvironmentSlug = $params.env.Value
+    $opts.ExpandSecretReferences = $params.expand.Value
+    $opts.SetSecretsAsEnvironmentVariables = $true
+
+    $paths = if ($params.path.Value -is [string[]]) { $params.path.Value } else { @($params.path.Value) }
+    
+    # Fetch secrets and set as env vars for each path
+    # Note: ListAsync only sets environment variables if they are not already set, 
+    # ensuring that the first path provided takes precedence.
+    foreach ($p in $paths) {
+      $opts.SecretPath = $p
+      $client.Secrets().ListAsync($opts).GetAwaiter().GetResult() | Out-Null
+    }
+
+    $finalCmd = if (![string]::IsNullOrEmpty($params.command.Value)) { $params.command.Value } else { $cmdArgs -join " " }
+
+    if ([string]::IsNullOrEmpty($finalCmd)) {
+      Write-Error "No command provided to run."
+      return
+    }
+
+    if ($params.watch.Value) {
+      Write-Warning "Watch mode is not yet implemented in this PowerShell module."
+    }
+
+    Invoke-Expression $finalCmd
+  }
+
+  static [void] RunScan([string[]]$args) {
+    Write-Warning "Secret scanning is not yet implemented in this PowerShell module."
+  }
+
+  static [void] RunInit([string[]]$args) {
+    $params = ConvertTo-Params $args -schema @{
+      projectId = [string], $null
+    }
+
+    $projectId = $params.projectId.Value
+    if ([string]::IsNullOrEmpty($projectId)) {
+      $projectId = Read-Host "Enter your Infisical Project ID"
+    }
+
+    if ([string]::IsNullOrEmpty($projectId)) {
+      Write-Error "Project ID is required."
+      return
+    }
+
+    $config = @{
+      workspaceId = $projectId
+    }
+
+    [Infisical]::SetProjectConfig($config)
+    Write-Host "Initialized project in .infisical.json" -ForegroundColor Green
+  }
+
+  static [void] RunReset([string[]]$args) {
+    $configFile = Join-Path (Get-Location) ".infisical.json"
+    if (Test-Path $configFile) {
+      Remove-Item $configFile
+      Write-Host "Reset Infisical configuration." -ForegroundColor Green
+    } else {
+      Write-Host "No Infisical configuration found to reset."
+    }
+  }
+
+  static [void] RunToken([string[]]$args) {
+    if ($args.Count -eq 0) {
+      Write-Host "Usage: infisical token <renew> [options]"
+      return
+    }
+
+    $subCommand = $args[0]
+    switch ($subCommand) {
+      "renew" {
+        Write-Warning "Token renewal is not yet implemented."
+      }
+      default {
+        Write-Error "Unknown token subcommand: $subCommand"
+      }
+    }
+  }
+
+  static [void] RunUser([string[]]$args) {
+    if ($args.Count -eq 0) {
+      Write-Host "Usage: infisical user <get|switch|update> [options]"
+      return
+    }
+
+    $subCommand = $args[0]
+    $remArgs = if ($args.Count -gt 1) { $args[1..($args.Count - 1)] } else { @() }
+
+    switch ($subCommand) {
+      "get" {
+        if ($remArgs.Count -gt 0 -and $remArgs[0] -eq "token") {
+          $params = ConvertTo-Params $remArgs[1..($remArgs.Count-1)] -schema @{
+            plain = [switch], $false
+          }
+          $token = $env:INFISICAL_TOKEN
+          if ([string]::IsNullOrEmpty($token)) {
+            Write-Error "Not logged in. No INFISICAL_TOKEN found."
+            return
+          }
+          if ($params.plain.Value) {
+            [Console]::WriteLine($token)
+          } else {
+            Write-Host "Token: $token"
+          }
+        }
+      }
+      default {
+        Write-Warning "User subcommand $subCommand is not yet implemented."
+      }
+    }
+  }
+
+  static [void] RunVault([string[]]$args) {
+    Write-Warning "Vault management is not yet implemented."
+  }
+
+  static [object] GetProjectConfig() {
+    $configFile = Join-Path (Get-Location) ".infisical.json"
+    if (Test-Path $configFile) {
+      return Get-Content $configFile | ConvertFrom-Json
+    }
+    return $null
+  }
+
+  static [void] SetProjectConfig([object]$Config) {
+    $configFile = Join-Path (Get-Location) ".infisical.json"
+    $Config | ConvertTo-Json | Set-Content $configFile
   }
   #endregion CLI Engine
   static [void] WriteBanner() {
