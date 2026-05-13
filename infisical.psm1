@@ -92,7 +92,7 @@ class Infisical {
   static [IdentitiesClient] Identities() { return [Infisical]::DefaultClient().Identities() }
   static [KmsClient] Kms() { return [Infisical]::DefaultClient().Kms() }
 
-  static [void] Run([string[]]$InputArgs) {
+  static hidden [void] ParseArgs([string[]]$InputArgs) {
     if ($InputArgs.Count -eq 0) {
       Write-Host ([Infisical]::WriteBanner()) -ForegroundColor Cyan
       Write-Host "Usage: infisical <command> [subcommand] [options]"
@@ -107,16 +107,16 @@ class Infisical {
 
     try {
       switch ($command) {
-        "login" { [Infisical]::RunLogin($subArgs); break }
-        "secrets" { [Infisical]::RunSecrets($subArgs); break }
-        "export" { [Infisical]::RunExport($subArgs); break }
-        "run" { [Infisical]::RunRun($subArgs); break }
-        "init" { [Infisical]::RunInit($subArgs); break }
-        "reset" { [Infisical]::RunReset($subArgs); break }
-        "token" { [Infisical]::RunToken($subArgs); break }
-        "user" { [Infisical]::RunUser($subArgs); break }
-        "vault" { [Infisical]::RunVault($subArgs); break }
-        "scan" { [Infisical]::RunScan($subArgs); break }
+        "login" { [Infisical]::Login($subArgs); break }
+        "secrets" { [Infisical]::Secrets($subArgs); break }
+        "export" { [Infisical]::Export($subArgs); break }
+        "run" { [Infisical]::Run($subArgs); break }
+        "init" { [Infisical]::Init($subArgs); break }
+        "reset" { [Infisical]::Reset($subArgs); break }
+        "token" { [Infisical]::Token($subArgs); break }
+        "user" { [Infisical]::User($subArgs); break }
+        "vault" { [Infisical]::Vault($subArgs); break }
+        "scan" { [Infisical]::Scan($subArgs); break }
         "help" { [Infisical]::ShowHelp(); break }
         "version" { [Infisical]::ShowVersion(); break }
         "upgrade" { [Infisical]::UpdateModule(); break }
@@ -139,7 +139,7 @@ class Infisical {
     }
   }
 
-  static [void] RunLogin([string[]]$InputArgs) {
+  static [void] Login([string[]]$InputArgs) {
     $params = ConvertTo-Params $InputArgs -schema @{
       method                = [string], 'user'
       domain                = [string], 'https://app.infisical.com'
@@ -180,7 +180,7 @@ class Infisical {
     }
   }
 
-  static [void] RunSecrets([string[]]$InputArgs) {
+  static [void] Secrets([string[]]$InputArgs) {
     if ($InputArgs.Count -eq 0 -or $InputArgs[0] -match '^-') {
       # No subcommand, this means 'infisical secrets'
       $subCommand = "list"
@@ -292,7 +292,7 @@ class Infisical {
     }
   }
 
-  static [void] RunExport([string[]]$InputArgs) {
+  static [void] Export([string[]]$InputArgs) {
     $params = ConvertTo-Params $InputArgs -schema @{
       format        = [string], 'dotenv'
       'output-file' = [string], $null
@@ -344,7 +344,7 @@ class Infisical {
     }
   }
 
-  static [void] RunRun([string[]]$InputArgs) {
+  static [void] Run([string[]]$InputArgs) {
     $dashDashIndex = [Array]::IndexOf($InputArgs, "--")
     $infisicalArgs = @()
     $cmdArgs = @()
@@ -419,15 +419,15 @@ class Infisical {
     }
   }
 
-  static [void] RunScan([string[]]$InputArgs) {
+  static [void] Scan([string[]]$InputArgs) {
     Write-Warning "Secret scanning is not yet implemented in this PowerShell module."
   }
 
   static [void] Init([string]$projectId) {
-    [Infisical]::RunInit(@("--projectId", $projectId))
+    [Infisical]::Init(@("--projectId", $projectId))
   }
 
-  static [void] RunInit([string[]]$InputArgs) {
+  static [void] Init([string[]]$InputArgs) {
     $params = ConvertTo-Params $InputArgs -schema @{
       projectId = [string], $null
     }
@@ -450,7 +450,7 @@ class Infisical {
     Write-Host "Initialized project in .infisical.json" -ForegroundColor Green
   }
 
-  static [void] RunReset([string[]]$InputArgs) {
+  static [void] Reset([string[]]$InputArgs) {
     $configFile = Join-Path (Get-Location) ".infisical.json"
     if (Test-Path $configFile) {
       Remove-Item $configFile
@@ -460,7 +460,7 @@ class Infisical {
     }
   }
 
-  static [void] RunToken([string[]]$InputArgs) {
+  static [void] Token([string[]]$InputArgs) {
     if ($InputArgs.Count -eq 0) {
       Write-Host "Usage: infisical token <renew> [options]"
       return
@@ -477,7 +477,7 @@ class Infisical {
     }
   }
 
-  static [void] RunUser([string[]]$InputArgs) {
+  static [void] User([string[]]$InputArgs) {
     if ($InputArgs.Count -eq 0) {
       Write-Host "Usage: infisical user <get|switch|update> [options]"
       return
@@ -510,7 +510,7 @@ class Infisical {
     }
   }
 
-  static [void] RunVault([string[]]$InputArgs) {
+  static [void] Vault([string[]]$InputArgs) {
     Write-Warning "Vault management is not yet implemented."
   }
 
