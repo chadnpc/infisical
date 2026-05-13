@@ -81,6 +81,17 @@ class Infisical {
     return $client
   }
 
+  static [InfisicalClient] DefaultClient() {
+    $domain = if ($env:INFISICAL_API_URL) { $env:INFISICAL_API_URL } else { "https://app.infisical.com" }
+    return [Infisical]::GetClient($domain, $null)
+  }
+
+  static [AuthClient] Auth() { return [Infisical]::DefaultClient().Auth() }
+  static [SecretsClient] Secrets() { return [Infisical]::DefaultClient().Secrets() }
+  static [PkiClient] Pki() { return [Infisical]::DefaultClient().Pki() }
+  static [IdentitiesClient] Identities() { return [Infisical]::DefaultClient().Identities() }
+  static [KmsClient] Kms() { return [Infisical]::DefaultClient().Kms() }
+
   static [void] Run([string[]]$InputArgs) {
     if ($InputArgs.Count -eq 0) {
       Write-Host ([Infisical]::WriteBanner()) -ForegroundColor Cyan
@@ -412,6 +423,10 @@ class Infisical {
     Write-Warning "Secret scanning is not yet implemented in this PowerShell module."
   }
 
+  static [void] Init([string]$projectId) {
+    [Infisical]::RunInit(@("--projectId", $projectId))
+  }
+
   static [void] RunInit([string[]]$InputArgs) {
     $params = ConvertTo-Params $InputArgs -schema @{
       projectId = [string], $null
@@ -512,6 +527,27 @@ class Infisical {
     $Config | ConvertTo-Json | Set-Content $configFile
   }
   #endregion CLI Engine
+  static [void] ShowHelp() {
+    [Infisical]::WriteBanner()
+    Write-Host ([Infisical]::GetHelp())
+  }
+
+  static [void] ShowVersion() {
+    $version = ([PsModuleBase]::ReadModuledata("infisical")["ModuleVersion"])
+    Write-Host "Infisical CLI version $version"
+  }
+
+  static [void] UpdateModule() {
+    Write-Host "Updating Infisical module..." -ForegroundColor Cyan
+    Update-Module -Name infisical -ErrorAction SilentlyContinue
+    Write-Host "Update check complete." -ForegroundColor Green
+  }
+
+  static [string] GetEvent([string]$id, [int]$limit, [string]$output) {
+    # TODO: Implement event retrieval in the API client
+    return "Event retrieval ($id) is not yet implemented in this PowerShell module wrapper."
+  }
+
   static [void] WriteBanner() {
     Write-Host ([PsModuleBase]::ReadModuledata("infisical")["BannerAscii"]) -f Green
   }
