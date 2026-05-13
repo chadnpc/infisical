@@ -230,7 +230,11 @@ class SecretsClient {
   [Task[InfisicalSecret]] UpdateAsync([UpdateSecretOptions]$options) {
     try {
       $options.Validate()
-      $responseObject = $this._apiClient.PatchAsync([UpdateSecretResponse], "/api/v3/secrets/raw/$($options.SecretName)", $options, $true).GetAwaiter().GetResult()
+      # Use ToSerializableHashtable() to exclude null/empty optional fields.
+      # Direct JSON serialization would coerce $null strings to "" in PowerShell,
+      # causing the API to return 422 (e.g. newSecretName must be >= 1 char).
+      $bodyHashtable = $options.ToSerializableHashtable()
+      $responseObject = $this._apiClient.PatchAsync([UpdateSecretResponse], "/api/v3/secrets/raw/$($options.SecretName)", $bodyHashtable, $true).GetAwaiter().GetResult()
       $response = [UpdateSecretResponse]$responseObject
       return [Task]::FromResult($response.Secret)
     }
@@ -307,7 +311,9 @@ class KmsClient {
   [Task[object]] GetKeyByNameAsync([GetKmsKeyByNameOptions]$options) {
     try {
       $options.Validate()
-      $responseObject = $this._apiClient.GetAsync([KmsKeyResponse], "/api/v1/kms/keys/key-name/$($options.KeyName)", @{}).GetAwaiter().GetResult()
+      $queryParams = [System.Collections.Generic.Dictionary[string,string]]::new()
+      $queryParams["projectId"] = $options.ProjectId
+      $responseObject = $this._apiClient.GetAsync([KmsKeyResponse], "/api/v1/kms/keys/key-name/$($options.KeyName)", $queryParams).GetAwaiter().GetResult()
       $response = [KmsKeyResponse]$responseObject
       return [Task]::FromResult($response.Key)
     }
