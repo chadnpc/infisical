@@ -39,8 +39,14 @@ Install-Module infisical -Scope CurrentUser
 ## quick usage (*wip)
 
 ```powershell
-# ... main class usage demo
-# [InfisicalClient]::dosomething(...)
+# cmdlet:
+infisical login --method universal-auth
+infisical init
+infisical secrets list
+
+# just classes
+$client = [Infisical]::GetClient($url, $token)
+$secrets = $client.Secrets().ListAsync($opts).GetAwaiter().GetResult()
 ```
 
 Full docs: [`./docs/README.md`.](./docs/README.md)
@@ -69,7 +75,7 @@ Import-Module ./infisical.psm1 -Force; ./Test-Module.ps1 -SkipBuildOutput
 One-liner install and launch:
 
 ```PowerShell
-# todo: add a one liner install and lai=unch script
+# todo: add a one liner install and launch script
 ```
 
 - cmdlet: `Invoke-infisicalCli` (aliases: `infisical`, `infisicalCli`).
