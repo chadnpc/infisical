@@ -9,7 +9,7 @@ function Invoke-InfisicalCli {
   #.LINK
   #  https://github.com/chadnpc/infisical/blob/main/Public/Invoke-InfisicalCli.ps1
   [CmdletBinding()]
-  [Alias('Infisical', 'InfisicalCli')]
+  [Alias('infisical', 'infisicalcli')]
   [OutputType({ [Infisical]::ReturnTypes })]
   param(
     [Parameter(Mandatory = $false, Position = 0)]
