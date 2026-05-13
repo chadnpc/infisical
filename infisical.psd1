@@ -55,6 +55,8 @@
     'PsModuleBase'
     'clihelper.env'
     'clihelper.xconvert'
+    'clihelper.logger'
+    'argparser'
   )
 
   # Assemblies that must be loaded prior to importing this module
