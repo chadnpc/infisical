@@ -134,7 +134,9 @@ Describe "Infisical Access Control tests " {
 Describe "Infisical KMS Operations" {
   $clientId = $env:INFISICAL_MACHINE_IDENTITY_CLIENT_ID
   $clientSecret = $env:INFISICAL_MACHINE_IDENTITY_CLIENT_SECRET
-  $projectId = $env:INFISICAL_PROJECT_ID
+  # KMS operations require a KMS-type project. Use INFISICAL_KMS_PROJECT_ID when
+  # available; fall back to INFISICAL_PROJECT_ID so existing envs still work.
+  $projectId = if (![string]::IsNullOrEmpty($env:INFISICAL_KMS_PROJECT_ID)) { $env:INFISICAL_KMS_PROJECT_ID } else { $env:INFISICAL_PROJECT_ID }
   $hostUri = if ([string]::IsNullOrEmpty($env:INFISICAL_HOST_URI)) { "https://app.infisical.com" } else { $env:INFISICAL_HOST_URI }
 
   $settings = [InfisicalSdkSettingsBuilder]::new().WithHostUri($hostUri).Build()
@@ -146,11 +148,12 @@ Describe "Infisical KMS Operations" {
   $script:kmsKeyId = $null
   $script:kmsAlgorithm = "aes-256-gcm"
   $script:kmsSigningAlgorithm = "RSASSA_PSS_SHA_512"
+  $script:kmsProjectId = $projectId
 
   Context "Keys" {
     It "Create Key [POST]" {
       $createOpts = [CreateKmsKeyOptions]::new()
-      $createOpts.ProjectId = $projectId
+      $createOpts.ProjectId = $script:kmsProjectId
       $createOpts.Name = $script:kmsKeyName
       $createOpts.Description = "Test key created by integration tests"
       $createOpts.KeyUsage = "encrypt-decrypt"
@@ -165,8 +168,10 @@ Describe "Infisical KMS Operations" {
     }
 
     It "List Keys [GET]" {
+      if ($null -eq $script:kmsKeyId) { Set-TestInconclusive -Message "Skipped: KMS key creation failed (check INFISICAL_KMS_PROJECT_ID is set to a KMS-type project)" ; return }
+
       $listOpts = [ListKmsKeysOptions]::new()
-      $listOpts.ProjectId = $projectId
+      $listOpts.ProjectId = $script:kmsProjectId
       $listOpts.Limit = 100
       $listOpts.OrderBy = "name"
       $listOpts.OrderDirection = "asc"
@@ -177,6 +182,8 @@ Describe "Infisical KMS Operations" {
     }
 
     It "Get Key by ID [GET]" {
+      if ($null -eq $script:kmsKeyId) { Set-TestInconclusive -Message "Skipped: KMS key creation failed (check INFISICAL_KMS_PROJECT_ID is set to a KMS-type project)" ; return }
+
       $getByIdOpts = [GetKmsKeyByIdOptions]::new()
       $getByIdOpts.KeyId = $script:kmsKeyId
 
@@ -188,8 +195,11 @@ Describe "Infisical KMS Operations" {
     }
 
     It "Get Key by Name [GET]" {
+      if ($null -eq $script:kmsKeyId) { Set-TestInconclusive -Message "Skipped: KMS key creation failed (check INFISICAL_KMS_PROJECT_ID is set to a KMS-type project)" ; return }
+
       $getByNameOpts = [GetKmsKeyByNameOptions]::new()
       $getByNameOpts.KeyName = $script:kmsKeyName
+      $getByNameOpts.ProjectId = $script:kmsProjectId
 
       $key = $client.Kms().GetKeyByNameAsync($getByNameOpts).GetAwaiter().GetResult()
       $key | Should Not BeNullOrEmpty
@@ -199,6 +209,8 @@ Describe "Infisical KMS Operations" {
     }
 
     It "Update Key [PATCH]" {
+      if ($null -eq $script:kmsKeyId) { Set-TestInconclusive -Message "Skipped: KMS key creation failed (check INFISICAL_KMS_PROJECT_ID is set to a KMS-type project)" ; return }
+
       $updateOpts = [UpdateKmsKeyOptions]::new()
       $updateOpts.KeyId = $script:kmsKeyId
       $updateOpts.Description = "Updated test description"
@@ -250,6 +262,8 @@ Describe "Infisical KMS Operations" {
     $script:testCiphertext = $null
 
     It "Encrypt Data [POST]" {
+      if ($null -eq $script:kmsKeyId) { Set-TestInconclusive -Message "Skipped: KMS key creation failed (check INFISICAL_KMS_PROJECT_ID is set to a KMS-type project)" ; return }
+
       $encryptOpts = [EncryptKmsDataOptions]::new()
       $encryptOpts.KeyId = $script:kmsKeyId
       $encryptOpts.Plaintext = $script:testPlaintext
@@ -261,6 +275,9 @@ Describe "Infisical KMS Operations" {
     }
 
     It "Decrypt Data [POST]" {
+      if ($null -eq $script:kmsKeyId) { Set-TestInconclusive -Message "Skipped: KMS key creation failed (check INFISICAL_KMS_PROJECT_ID is set to a KMS-type project)" ; return }
+      if ($null -eq $script:testCiphertext) { Set-TestInconclusive -Message "Skipped: Encrypt step did not produce ciphertext" ; return }
+
       $decryptOpts = [DecryptKmsDataOptions]::new()
       $decryptOpts.KeyId = $script:kmsKeyId
       $decryptOpts.Ciphertext = $script:testCiphertext
@@ -277,8 +294,10 @@ Describe "Infisical KMS Operations" {
     $script:signKeyId = $null
 
     It "Create Asymmetric Key for Signing Setup" {
+      if ($null -eq $script:kmsProjectId) { Set-TestInconclusive -Message "Skipped: No KMS project configured" ; return }
+
       $createOpts = [CreateKmsKeyOptions]::new()
-      $createOpts.ProjectId = $projectId
+      $createOpts.ProjectId = $script:kmsProjectId
       $createOpts.Name = "test-sign-key-$([guid]::NewGuid().ToString().Substring(0,8))"
       $createOpts.KeyUsage = "sign-verify"
       $createOpts.EncryptionAlgorithm = "rsa-2048"
@@ -340,6 +359,8 @@ Describe "Infisical KMS Operations" {
 
   Context "Cleanup" {
     It "Delete Key [DEL]" {
+      if ($null -eq $script:kmsKeyId) { Set-TestInconclusive -Message "Skipped: KMS key creation failed, nothing to clean up" ; return }
+
       $deleteOpts = [DeleteKmsKeyOptions]::new()
       $deleteOpts.KeyId = $script:kmsKeyId
 
