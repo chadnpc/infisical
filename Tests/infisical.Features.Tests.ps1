@@ -159,12 +159,20 @@ Describe "Infisical KMS Operations" {
       $createOpts.KeyUsage = "encrypt-decrypt"
       $createOpts.EncryptionAlgorithm = $script:kmsAlgorithm
 
-      $createdKey = $client.Kms().CreateKeyAsync($createOpts).GetAwaiter().GetResult()
-      $createdKey | Should Not BeNullOrEmpty
+      try {
+        $createdKey = $client.Kms().CreateKeyAsync($createOpts).GetAwaiter().GetResult()
+        $createdKey | Should Not BeNullOrEmpty
 
-      # Parse id if it's JsonElement, otherwise take property directly (fallback generic access)
-      $script:kmsKeyId = if ($createdKey -is [System.Text.Json.JsonElement]) { $createdKey.GetProperty("id").GetString() } else { $createdKey.id }
-      $script:kmsKeyId | Should Not BeNullOrEmpty
+        # Parse id if it's JsonElement, otherwise take property directly (fallback generic access)
+        $script:kmsKeyId = if ($createdKey -is [System.Text.Json.JsonElement]) { $createdKey.GetProperty("id").GetString() } else { $createdKey.id }
+        $script:kmsKeyId | Should Not BeNullOrEmpty
+      } catch {
+        if ($_.Exception.ToString() -match "Operations of type kms are not allowed") {
+          Set-TestInconclusive -Message "Skipped: The project is of type secret-manager, which does not allow KMS operations."
+        } else {
+          throw
+        }
+      }
     }
 
     It "List Keys [GET]" {
