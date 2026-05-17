@@ -38,6 +38,30 @@ function Invoke-InfisicalCli {
     [Alias('i')][ValidateNotNullOrEmpty()]
     $InputObject
   )
+  dynamicparam {
+    $dynamicParams = [System.Management.Automation.RuntimeDefinedParameterDictionary]::new()
+    #region IgnoredArguments
+    $attributeCollection = [System.Collections.ObjectModel.Collection[System.Attribute]]::new()
+    $attributes = [System.Management.Automation.ParameterAttribute]::new(); $attHash = @{
+      Position                        = 2
+      ParameterSetName                = '__AllParameterSets'
+      Mandatory                       = $False
+      ValueFromPipeline               = $true
+      ValueFromPipelineByPropertyName = $true
+      ValueFromRemainingArguments     = $true
+      HelpMessage                     = 'Allows splatting with arguments that do not apply. Do not use directly.'
+      DontShow                        = $False
+    }; $attHash.Keys | ForEach-Object { $attributes.$_ = $attHash.$_ }
+    $attributeCollection.Add($attributes)
+    # $attributeCollection.Add([System.Management.Automation.ValidateSetAttribute]::new([System.Object[]]$ValidateSetOption))
+    # $attributeCollection.Add([System.Management.Automation.ValidateRangeAttribute]::new([System.Int32[]]$ValidateRange))
+    # $attributeCollection.Add([System.Management.Automation.ValidateNotNullOrEmptyAttribute]::new())
+    # $attributeCollection.Add([System.Management.Automation.AliasAttribute]::new([System.String[]]$Aliases))
+    $RuntimeParam = [System.Management.Automation.RuntimeDefinedParameter]::new("IgnoredArguments", [Object[]], $attributeCollection)
+    $dynamicParams.Add("IgnoredArguments", $RuntimeParam)
+    #endregion IgnoredArguments
+    return $dynamicParams
+  }
   begin {
     $buff = [System.Collections.Generic.List[byte]]::new()
     $meth = [string]::IsNullOrWhiteSpace($Method) ? "GetHelp" : $Method
